@@ -100,7 +100,7 @@ internal class CassandraSaveQueryClientImpl(
             )
             savedDocuments?.increment(savedDocumentsCount.toDouble())
             if (failedDocumentsCount.get() > 0) {
-                eventsLogger?.info("$eventPrefix.failed-documents", failedDocumentsCount.get(), tags = contextEventTags)
+                eventsLogger?.warn("$eventPrefix.failed-documents", failedDocumentsCount.get(), tags = contextEventTags)
                 failedDocuments?.increment(failedDocumentsCount.toDouble())
             }
 
