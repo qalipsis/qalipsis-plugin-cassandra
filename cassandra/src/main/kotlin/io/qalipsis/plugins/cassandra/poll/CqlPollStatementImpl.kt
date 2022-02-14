@@ -45,7 +45,7 @@ internal class CqlPollStatementImpl (
     private fun parseOrderQuery() =
         parsedInitialQuery.parameters.orderings.entries.associate {
             Pair(
-                it.key.rawText().lowercase(),
+                it.key.toCQLString().lowercase(),
                 parseOrder(it.value)
             )
         }

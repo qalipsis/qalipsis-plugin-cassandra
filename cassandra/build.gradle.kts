@@ -22,8 +22,9 @@ allOpen {
 val micronautVersion: String by project
 val kotlinCoroutinesVersion: String by project
 val testContainersVersion: String by project
-val cassandraDriverVersion = "4.9.0"
-val cassandraAllDriverVersion = "3.11.1"
+val cassandraDriverVersion = "4.13.0"
+val cassandraAllDriverVersion = "4.0.2"
+val nettyVersion = "4.1.73.Final"
 val catadioptreVersion: String by project
 
 kotlin.sourceSets["test"].kotlin.srcDir("build/generated/source/kaptKotlin/catadioptre")
@@ -40,6 +41,9 @@ dependencies {
     api("com.datastax.oss:java-driver-query-builder:$cassandraDriverVersion")
     api("com.datastax.oss:java-driver-mapper-runtime:$cassandraDriverVersion")
     api("org.apache.cassandra:cassandra-all:$cassandraAllDriverVersion")
+    implementation(platform("io.netty:netty-bom:$nettyVersion"))
+    implementation(group = "io.netty", name = "netty-transport-native-epoll", classifier = "linux-x86_64")
+    implementation(group = "io.netty", name = "netty-transport-native-kqueue", classifier = "osx-x86_64")
 
     api("io.qalipsis:api-common:${project.version}")
     api("io.qalipsis:api-dsl:${project.version}")

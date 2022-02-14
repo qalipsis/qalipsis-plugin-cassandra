@@ -12,8 +12,8 @@ import io.mockk.spyk
 import io.qalipsis.api.context.StepContext
 import io.qalipsis.api.retry.RetryPolicy
 import io.qalipsis.api.sync.asSuspended
-import io.qalipsis.plugins.cassandra.CassandraRecord
 import io.qalipsis.plugins.cassandra.CassandraQueryResult
+import io.qalipsis.plugins.cassandra.CassandraRecord
 import io.qalipsis.plugins.cassandra.converters.CassandraResultSetConverter
 import io.qalipsis.test.mockk.WithMockk
 import io.qalipsis.test.mockk.relaxedMockk
@@ -94,7 +94,7 @@ internal class CassandraSearchStepTest {
         coEvery { queryFactory.invoke(any(), any()) } returns "select * from tracker"
         coEvery { paramsFactory.invoke(any(), any()) } returns listOf(42)
 
-        assertThrows<IllegalArgumentException> {
+        assertThrows<Exception> {
             cassandraSearchStep.execute(context)
         }
 
@@ -109,7 +109,7 @@ internal class CassandraSearchStepTest {
         coEvery { queryFactory.invoke(any(), any()) } returns "SELECT * FROM TRACKER WHERE DEVICE_NAME = ?"
         coEvery { paramsFactory.invoke(any(), any()) } returns emptyList()
 
-        assertThrows<IllegalArgumentException> {
+        assertThrows<Exception> {
             cassandraSearchStep.execute(context)
         }
 
