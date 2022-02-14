@@ -14,8 +14,6 @@ import io.qalipsis.api.sync.asSuspended
 import io.qalipsis.plugins.cassandra.CassandraQueryResult
 import io.qalipsis.plugins.cassandra.CassandraRecord
 import io.qalipsis.plugins.cassandra.converters.CassandraResultSetConverter
-import org.apache.cassandra.cql3.QueryProcessor
-import org.apache.cassandra.cql3.statements.SelectStatement
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicLong
 
@@ -59,20 +57,10 @@ internal class CassandraSearchStep<I>(
         val query = queryFactory(context, input)
         val parameters = parametersFactory(context, input)
 
-        checkQueryAndArguments(query, parameters)
-
         val result = cassandraQueryClient.execute(session, query, parameters, context.toEventTags())
 
         @Suppress("UNCHECKED_CAST")
         converter.supply(rowIndex, result, input, context as StepOutput<Any>)
-    }
-
-    private fun checkQueryAndArguments(query: String, parameters: List<Any>) {
-        val parsedStatement = QueryProcessor.parseStatement(query)
-
-        val parsedStatementAsRaw = parsedStatement as? SelectStatement.RawStatement ?: throw IllegalArgumentException("Query must be a select statement")
-
-        require(parsedStatementAsRaw.boundVariables.size() == parameters.size) { "Parameters list should have the same size then the parameters to bind" }
     }
 
     override suspend fun stop(context: StepStartStopContext) {
