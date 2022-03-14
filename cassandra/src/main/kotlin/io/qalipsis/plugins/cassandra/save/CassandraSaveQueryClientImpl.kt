@@ -88,20 +88,25 @@ internal class CassandraSaveQueryClientImpl(
                 queryList.add("INSERT INTO $tableName (${columns.joinToString()}) VALUES (${it.args.joinToString()})")
             } else failedDocumentsCount.incrementAndGet()
         }
+
         val timeToResponse = withContext(ioCoroutineContext) {
             val requestStart = System.nanoTime()
-            queryList.forEach {
-                try {
-                    session.executeAsync(it).asSuspended().get()
-                    savedDocumentsCount.incrementAndGet()
-                } catch (e: Exception) {
-                    val timeToResponse = Duration.ofNanos(System.nanoTime() - requestStart)
-                    eventsLogger?.warn("$eventPrefix.failure", arrayOf(timeToResponse, e), tags = contextEventTags)
-                    timeToFailure?.record(timeToResponse)
-
+            try {
+                val futures = queryList.map { session.executeAsync(it).asSuspended() }
+                futures.forEach {
+                    if (it.get().wasApplied()) {
+                        savedDocumentsCount.incrementAndGet()
+                    } else {
+                        failedDocumentsCount.incrementAndGet()
+                    }
                 }
+                Duration.ofNanos(System.nanoTime() - requestStart)
+            } catch (e: Exception) {
+                val timeToResponse = Duration.ofNanos(System.nanoTime() - requestStart)
+                eventsLogger?.warn("$eventPrefix.failure", arrayOf(timeToResponse, e), tags = contextEventTags)
+                timeToFailure?.record(timeToResponse)
+                throw e
             }
-            Duration.ofNanos(System.nanoTime() - requestStart)
         }
         require(savedDocumentsCount.get() > 0) { "None of the rows could be saved" }
 
