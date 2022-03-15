@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.assertThrows
 import java.time.Duration
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  *
@@ -111,7 +112,9 @@ internal class CassandraSaveQueryClientIntegrationTest : AbstractCassandraIntegr
             savedDocuments.increment(1.0)
         }
         assertThat(eventCaptor.captured.toList()).all {
-            index(0).isEqualTo(1)
+            index(0).all {
+                prop(AtomicInteger::get).isEqualTo(1)
+            }
             index(1).isNotNull().isInstanceOf(Duration::class.java).isGreaterThan(Duration.ZERO)
         }
 

@@ -10,7 +10,6 @@ import io.qalipsis.api.sync.asSuspended
 import kotlinx.coroutines.withContext
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.stream.Collectors
 import kotlin.coroutines.CoroutineContext
 
 
@@ -80,67 +79,56 @@ internal class CassandraSaveQueryClientImpl(
         contextEventTags: Map<String, String>
     ): CassandraSaveQueryMeters {
         val failedDocumentsCount = AtomicInteger()
-        val query = buildBatchQuery(tableName, columns, rows, failedDocumentsCount)
+        val savedDocumentsCount = AtomicInteger()
         eventsLogger?.debug("$eventPrefix.saving-documents", rows.size, tags = contextEventTags)
         recordsToBeSent?.increment(rows.size.toDouble())
-
-        val requestStart = System.nanoTime()
-        return try {
-            val timeToResponse = withContext(ioCoroutineContext) {
-                session.executeAsync(query).asSuspended().get()
-                Duration.ofNanos(System.nanoTime() - requestStart)
-            }
-            val savedDocumentsCount = rows.size - failedDocumentsCount.get()
-            require(savedDocumentsCount > 0) { "None of the rows could be saved" }
-
-            eventsLogger?.info(
-                "$eventPrefix.saved-documents",
-                arrayOf(savedDocumentsCount, timeToResponse),
-                tags = contextEventTags
-            )
-            savedDocuments?.increment(savedDocumentsCount.toDouble())
-            if (failedDocumentsCount.get() > 0) {
-                eventsLogger?.warn("$eventPrefix.failed-documents", failedDocumentsCount.get(), tags = contextEventTags)
-                failedDocuments?.increment(failedDocumentsCount.toDouble())
-            }
-
-            timeToSuccess?.record(timeToResponse)
-
-            CassandraSaveQueryMeters(
-                rows.size, timeToResponse, savedDocumentsCount, failedDocumentsCount.get()
-            )
-        } catch (e: Exception) {
-            val timeToResponse = Duration.ofNanos(System.nanoTime() - requestStart)
-            eventsLogger?.warn("$eventPrefix.failure", arrayOf(timeToResponse, e), tags = contextEventTags)
-            timeToFailure?.record(timeToResponse)
-
-            throw e
-        }
-    }
-
-    private fun buildBatchQuery(
-        tableName: String,
-        columns: List<String>,
-        rows: List<CassandraSaveRow>,
-        failedDocumentsCount: AtomicInteger
-    ): String {
-        var query = """BEGIN BATCH """
-        val quotedTableName = "\"$tableName\""
-        val quotedColumns: String = columns.stream()
-            .map { s -> "\"" + s + "\"" }
-            .collect(Collectors.joining(", "))
+        val queryList = mutableListOf<String>()
         rows.forEach {
             if (checkColumnsAndArgumentsSizes(columns, it)) {
-                query =
-                    query.plus("""INSERT INTO $quotedTableName ($quotedColumns) VALUES (${it.args.joinToString()});""")
+                queryList.add("INSERT INTO $tableName (${columns.joinToString()}) VALUES (${it.args.joinToString()})")
             } else failedDocumentsCount.incrementAndGet()
         }
-        query = query.plus(""" APPLY BATCH;""")
-        return query
+
+        val timeToResponse = withContext(ioCoroutineContext) {
+            val requestStart = System.nanoTime()
+            try {
+                val futures = queryList.map { session.executeAsync(it).asSuspended() }
+                futures.forEach {
+                    if (it.get().wasApplied()) {
+                        savedDocumentsCount.incrementAndGet()
+                    } else {
+                        failedDocumentsCount.incrementAndGet()
+                    }
+                }
+                Duration.ofNanos(System.nanoTime() - requestStart)
+            } catch (e: Exception) {
+                val timeToResponse = Duration.ofNanos(System.nanoTime() - requestStart)
+                eventsLogger?.warn("$eventPrefix.failure", arrayOf(timeToResponse, e), tags = contextEventTags)
+                timeToFailure?.record(timeToResponse)
+                throw e
+            }
+        }
+        require(savedDocumentsCount.get() > 0) { "None of the rows could be saved" }
+
+        eventsLogger?.info(
+            "$eventPrefix.saved-documents",
+            arrayOf(savedDocumentsCount, timeToResponse),
+            tags = contextEventTags
+        )
+        savedDocuments?.increment(savedDocumentsCount.toDouble())
+        if (failedDocumentsCount.get() > 0) {
+            eventsLogger?.warn("$eventPrefix.failed-documents", failedDocumentsCount.get(), tags = contextEventTags)
+            failedDocuments?.increment(failedDocumentsCount.toDouble())
+        }
+
+        timeToSuccess?.record(timeToResponse)
+
+        return CassandraSaveQueryMeters(
+            rows.size, timeToResponse, savedDocumentsCount.get(), failedDocumentsCount.get()
+        )
     }
 
     private fun checkColumnsAndArgumentsSizes(columns: List<String>, row: CassandraSaveRow): Boolean {
         return columns.size == row.args.size
     }
-
 }
