@@ -24,7 +24,7 @@ val kotlinCoroutinesVersion: String by project
 val testContainersVersion: String by project
 val cassandraDriverVersion = "4.13.0"
 val cassandraAllDriverVersion = "4.0.2"
-val nettyVersion = "4.1.73.Final"
+val nettyVersion = "4.1.74.Final"
 val catadioptreVersion: String by project
 
 kotlin.sourceSets["test"].kotlin.srcDir("build/generated/source/kaptKotlin/catadioptre")
