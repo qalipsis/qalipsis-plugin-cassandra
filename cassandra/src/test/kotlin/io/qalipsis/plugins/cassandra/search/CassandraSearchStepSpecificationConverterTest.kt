@@ -24,11 +24,12 @@ import io.qalipsis.plugins.cassandra.converters.CassandraResultSetBatchRecordCon
 import io.qalipsis.plugins.cassandra.converters.CassandraResultSetConverter
 import io.qalipsis.plugins.cassandra.converters.CassandraResultSetSingleRecordConverter
 import io.qalipsis.test.assertk.prop
+import io.qalipsis.test.coroutines.TestDispatcherProvider
 import io.qalipsis.test.mockk.WithMockk
 import io.qalipsis.test.mockk.relaxedMockk
 import io.qalipsis.test.steps.AbstractStepSpecificationConverterTest
-import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -39,6 +40,10 @@ import kotlin.coroutines.CoroutineContext
 @WithMockk
 internal class CassandraSearchStepSpecificationConverterTest :
     AbstractStepSpecificationConverterTest<CassandraSearchStepSpecificationConverter>() {
+
+    @JvmField
+    @RegisterExtension
+    val testDispatcherProvider = TestDispatcherProvider()
 
     @RelaxedMockK
     private lateinit var ioCoroutineContext: CoroutineContext
@@ -62,7 +67,7 @@ internal class CassandraSearchStepSpecificationConverterTest :
 
     @Test
     @Suppress("UNCHECK_CAST")
-    fun `should convert with retry policy`() = runBlockingTest {
+    fun `should convert with retry policy`() = testDispatcherProvider.runTest {
         // given
         val spec = CassandraSearchStepSpecificationImpl<Any>()
         spec.also {
@@ -95,7 +100,7 @@ internal class CassandraSearchStepSpecificationConverterTest :
 
         // then
         assertThat(creationContext.createdStep!!).isInstanceOf(CassandraSearchStep::class).all {
-            prop("id").isNotNull().isEqualTo("my-step")
+            prop("name").isNotNull().isEqualTo("my-step")
             prop("retryPolicy").isNotNull()
             prop("sessionBuilder").isNotNull().isInstanceOf(CqlSessionBuilder::class)
             prop("queryFactory").isEqualTo(queryFactory)
@@ -111,7 +116,7 @@ internal class CassandraSearchStepSpecificationConverterTest :
 
     @Test
     @Suppress("UNCHECK_CAST")
-    fun `should convert without retry policy but with meters`() = runBlockingTest {
+    fun `should convert without retry policy but with meters`() = testDispatcherProvider.runTest {
         // given
         val spec = CassandraSearchStepSpecificationImpl<Any>()
         spec.also {
@@ -141,7 +146,7 @@ internal class CassandraSearchStepSpecificationConverterTest :
 
         // then
         assertThat(creationContext.createdStep!!).isInstanceOf(CassandraSearchStep::class).all {
-            prop("id").isNotNull().isEqualTo("my-step")
+            prop("name").isNotNull().isEqualTo("my-step")
             prop("retryPolicy").isNull()
             prop("sessionBuilder").isNotNull().isInstanceOf(CqlSessionBuilder::class)
             prop("queryFactory").isEqualTo(queryFactory)

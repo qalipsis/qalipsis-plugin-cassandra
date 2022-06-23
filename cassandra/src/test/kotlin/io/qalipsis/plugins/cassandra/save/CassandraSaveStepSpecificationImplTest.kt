@@ -18,9 +18,10 @@ import io.qalipsis.plugins.cassandra.cassandra
 import io.qalipsis.plugins.cassandra.configuration.CassandraServerConfiguration
 import io.qalipsis.plugins.cassandra.configuration.DefaultValues
 import io.qalipsis.plugins.cassandra.configuration.DriverProfile
+import io.qalipsis.test.coroutines.TestDispatcherProvider
 import io.qalipsis.test.mockk.relaxedMockk
-import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 
 
 /**
@@ -29,8 +30,12 @@ import org.junit.jupiter.api.Test
  */
 internal class CassandraSaveStepSpecificationImplTest {
 
+    @JvmField
+    @RegisterExtension
+    val testDispatcherProvider = TestDispatcherProvider()
+
     @Test
-    fun `should add minimal configuration for the step`() = runBlockingTest {
+    fun `should add minimal configuration for the step`() = testDispatcherProvider.runTest {
         val previousStep = DummyStepSpecification()
         previousStep.cassandra().save {
             name = "my-save-step"
@@ -84,7 +89,7 @@ internal class CassandraSaveStepSpecificationImplTest {
 
 
     @Test
-    fun `should add a complete configuration for the step`() = runBlockingTest {
+    fun `should add a complete configuration for the step`() = testDispatcherProvider.runTest {
         val previousStep = DummyStepSpecification()
         previousStep.cassandra().save {
             name = "my-save-step"

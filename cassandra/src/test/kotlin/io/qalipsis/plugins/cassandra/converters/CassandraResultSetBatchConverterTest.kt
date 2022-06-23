@@ -18,18 +18,23 @@ import io.qalipsis.plugins.cassandra.CassandraQueryMeters
 import io.qalipsis.plugins.cassandra.CassandraQueryResult
 import io.qalipsis.plugins.cassandra.CassandraRecord
 import io.qalipsis.plugins.cassandra.search.CassandraSearchResult
+import io.qalipsis.test.coroutines.TestDispatcherProvider
 import io.qalipsis.test.mockk.CleanMockkRecordedCalls
 import io.qalipsis.test.mockk.relaxedMockk
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.util.concurrent.atomic.AtomicLong
 
 @CleanMockkRecordedCalls
 internal class CassandraResultSetBatchConverterTest {
 
+    @JvmField
+    @RegisterExtension
+    val testDispatcherProvider = TestDispatcherProvider()
+
     @Test
-    fun `should convert and send output in batches`() = runBlockingTest {
+    fun `should convert and send output in batches`() = testDispatcherProvider.runTest {
         //given
         val converter = spyk(CassandraResultSetBatchRecordConverter<Any>())
 
@@ -70,35 +75,35 @@ internal class CassandraResultSetBatchConverterTest {
 
         //then
         assertThat(results.records).all {
-                hasSize(2)
-                index(0).all {
-                    prop(
-                        CassandraRecord<Map<CqlIdentifier, Any?>>::offset
-                    ).isEqualTo(0)
-                    prop(
-                        CassandraRecord<Map<CqlIdentifier, Any?>>::source
-                    ).isEqualTo("testkeyspace")
-                    prop(CassandraRecord<Map<CqlIdentifier, Any?>>::value).all {
-                        hasSize(2)
-                        key(CqlIdentifier.fromInternal("name1")).isEqualTo("testvalue")
-                        key(CqlIdentifier.fromInternal("name2")).isEqualTo("testvalue")
-                    }
+            hasSize(2)
+            index(0).all {
+                prop(
+                    CassandraRecord<Map<CqlIdentifier, Any?>>::offset
+                ).isEqualTo(0)
+                prop(
+                    CassandraRecord<Map<CqlIdentifier, Any?>>::source
+                ).isEqualTo("testkeyspace")
+                prop(CassandraRecord<Map<CqlIdentifier, Any?>>::value).all {
+                    hasSize(2)
+                    key(CqlIdentifier.fromInternal("name1")).isEqualTo("testvalue")
+                    key(CqlIdentifier.fromInternal("name2")).isEqualTo("testvalue")
                 }
-                index(1).all {
-                    prop(
-                        CassandraRecord<Map<CqlIdentifier, Any?>>::offset
-                    ).isEqualTo(1)
-                    prop(
-                        CassandraRecord<Map<CqlIdentifier, Any?>>::source
-                    ).isEqualTo("testkeyspace")
-                    prop(CassandraRecord<Map<CqlIdentifier, Any?>>::value).all {
-                        hasSize(2)
-                        key(CqlIdentifier.fromInternal("name1")).isEqualTo("anotherValue")
-                        key(CqlIdentifier.fromInternal("name2")).isEqualTo("anotherValue")
-                    }
+            }
+            index(1).all {
+                prop(
+                    CassandraRecord<Map<CqlIdentifier, Any?>>::offset
+                ).isEqualTo(1)
+                prop(
+                    CassandraRecord<Map<CqlIdentifier, Any?>>::source
+                ).isEqualTo("testkeyspace")
+                prop(CassandraRecord<Map<CqlIdentifier, Any?>>::value).all {
+                    hasSize(2)
+                    key(CqlIdentifier.fromInternal("name1")).isEqualTo("anotherValue")
+                    key(CqlIdentifier.fromInternal("name2")).isEqualTo("anotherValue")
                 }
             }
         }
     }
+}
 
 

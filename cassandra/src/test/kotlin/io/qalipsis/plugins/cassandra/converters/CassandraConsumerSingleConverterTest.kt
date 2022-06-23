@@ -17,11 +17,12 @@ import io.mockk.spyk
 import io.qalipsis.plugins.cassandra.CassandraQueryMeters
 import io.qalipsis.plugins.cassandra.CassandraQueryResult
 import io.qalipsis.plugins.cassandra.CassandraRecord
+import io.qalipsis.test.coroutines.TestDispatcherProvider
 import io.qalipsis.test.mockk.CleanMockkRecordedCalls
 import io.qalipsis.test.mockk.relaxedMockk
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.util.concurrent.atomic.AtomicLong
 
 /**
@@ -31,8 +32,12 @@ import java.util.concurrent.atomic.AtomicLong
 @CleanMockkRecordedCalls
 internal class CassandraConsumerSingleConverterTest {
 
+    @JvmField
+    @RegisterExtension
+    val testDispatcherProvider = TestDispatcherProvider()
+
     @Test
-    internal fun `should deserialize and count the records`() = runBlockingTest {
+    internal fun `should deserialize and count the records`() = testDispatcherProvider.runTest {
         //given
         val converter = spyk(CassandraSingleRecordConverter())
 

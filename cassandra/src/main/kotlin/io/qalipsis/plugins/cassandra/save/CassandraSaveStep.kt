@@ -4,7 +4,7 @@ import com.datastax.oss.driver.api.core.CqlSession
 import com.datastax.oss.driver.api.core.CqlSessionBuilder
 import com.datastax.oss.driver.internal.core.util.concurrent.CompletableFutures
 import io.qalipsis.api.context.StepContext
-import io.qalipsis.api.context.StepId
+import io.qalipsis.api.context.StepName
 import io.qalipsis.api.context.StepStartStopContext
 import io.qalipsis.api.retry.RetryPolicy
 import io.qalipsis.api.steps.AbstractStep
@@ -23,7 +23,7 @@ import java.time.Duration
  * @author Svetlana Paliashchuk
  */
 internal class CassandraSaveStep<I>(
-    id: StepId,
+    id: StepName,
     retryPolicy: RetryPolicy?,
     private val cassandraSaveQueryClient: CassandraSaveQueryClient,
     private val sessionBuilder: CqlSessionBuilder,

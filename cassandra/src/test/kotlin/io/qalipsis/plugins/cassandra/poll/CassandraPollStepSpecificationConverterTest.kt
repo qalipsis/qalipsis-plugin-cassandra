@@ -27,6 +27,7 @@ import io.qalipsis.plugins.cassandra.converters.CassandraBatchRecordConverter
 import io.qalipsis.plugins.cassandra.converters.CassandraSingleRecordConverter
 import io.qalipsis.plugins.cassandra.search.CassandraQueryClientImpl
 import io.qalipsis.test.assertk.prop
+import io.qalipsis.test.coroutines.TestDispatcherProvider
 import io.qalipsis.test.mockk.WithMockk
 import io.qalipsis.test.mockk.relaxedMockk
 import io.qalipsis.test.mockk.verifyNever
@@ -35,9 +36,9 @@ import io.qalipsis.test.steps.AbstractStepSpecificationConverterTest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.Duration
 import kotlin.coroutines.CoroutineContext
 
@@ -49,6 +50,10 @@ import kotlin.coroutines.CoroutineContext
 internal class CassandraPollStepSpecificationConverterTest :
     AbstractStepSpecificationConverterTest<CassandraPollStepSpecificationConverter>() {
 
+    @JvmField
+    @RegisterExtension
+    val testDispatcherProvider = TestDispatcherProvider()
+
     @RelaxedMockK
     private lateinit var ioCoroutineScope: CoroutineScope
 
@@ -57,20 +62,18 @@ internal class CassandraPollStepSpecificationConverterTest :
 
     @Test
     override fun `should support expected spec`() {
-        assertThat(converter.support(relaxedMockk<CassandraPollStepSpecificationImpl>()))
-            .isTrue()
+        assertThat(converter.support(relaxedMockk<CassandraPollStepSpecificationImpl>())).isTrue()
     }
 
     @Test
     override fun `should not support unexpected spec`() {
-        assertThat(converter.support(relaxedMockk()))
-            .isFalse()
+        assertThat(converter.support(relaxedMockk())).isFalse()
     }
 
     @Test
     @ExperimentalCoroutinesApi
     @Timeout(1)
-    fun `should convert with event logger only`() = runBlockingTest {
+    fun `should convert with event logger only`() = testDispatcherProvider.runTest {
         // given
         val spec = CassandraPollStepSpecificationImpl()
         spec.apply {
@@ -109,7 +112,7 @@ internal class CassandraPollStepSpecificationConverterTest :
 
         // then
         assertThat(creationContext.createdStep!!).isInstanceOf(IterativeDatasourceStep::class).all {
-            prop("id").isEqualTo("my-step")
+            prop("name").isEqualTo("my-step")
             prop("reader").isNotNull().isInstanceOf(CassandraIterativeReader::class).all {
                 prop("ioCoroutineScope").isSameAs(ioCoroutineScope)
                 prop("sessionBuilder").isNotNull()
@@ -124,8 +127,8 @@ internal class CassandraPollStepSpecificationConverterTest :
             prop("processor").isNotNull().isInstanceOf(NoopDatasourceObjectProcessor::class)
             prop("converter").isNotNull().isSameAs(recordsConverter)
         }
-        verifyOnce { spiedConverter.buildConverter(eq(creationContext.createdStep!!.id), refEq(spec)) }
-        verifyNever { spiedConverter.buildConverter(neq(creationContext.createdStep!!.id), any()) }
+        verifyOnce { spiedConverter.buildConverter(eq(creationContext.createdStep!!.name), refEq(spec)) }
+        verifyNever { spiedConverter.buildConverter(neq(creationContext.createdStep!!.name), any()) }
 
         val channelFactory = creationContext.createdStep!!
             .getProperty<CassandraIterativeReader>("reader")
@@ -141,7 +144,7 @@ internal class CassandraPollStepSpecificationConverterTest :
     @Test
     @ExperimentalCoroutinesApi
     @Timeout(1)
-    fun `should convert with meter registry only`() = runBlockingTest {
+    fun `should convert with meter registry only`() = testDispatcherProvider.runTest {
         // given
         val spec = CassandraPollStepSpecificationImpl()
         spec.apply {
@@ -180,7 +183,7 @@ internal class CassandraPollStepSpecificationConverterTest :
 
         // then
         assertThat(creationContext.createdStep!!).isInstanceOf(IterativeDatasourceStep::class).all {
-            prop("id").isEqualTo("my-step")
+            prop("name").isEqualTo("my-step")
             prop("reader").isNotNull().isInstanceOf(CassandraIterativeReader::class).all {
                 prop("ioCoroutineScope").isSameAs(ioCoroutineScope)
                 prop("sessionBuilder").isNotNull()
@@ -195,8 +198,8 @@ internal class CassandraPollStepSpecificationConverterTest :
             prop("processor").isNotNull().isInstanceOf(NoopDatasourceObjectProcessor::class)
             prop("converter").isNotNull().isSameAs(recordsConverter)
         }
-        verifyOnce { spiedConverter.buildConverter(eq(creationContext.createdStep!!.id), refEq(spec)) }
-        verifyNever { spiedConverter.buildConverter(neq(creationContext.createdStep!!.id), any()) }
+        verifyOnce { spiedConverter.buildConverter(eq(creationContext.createdStep!!.name), refEq(spec)) }
+        verifyNever { spiedConverter.buildConverter(neq(creationContext.createdStep!!.name), any()) }
 
         val channelFactory = creationContext.createdStep!!
             .getProperty<CassandraIterativeReader>("reader")

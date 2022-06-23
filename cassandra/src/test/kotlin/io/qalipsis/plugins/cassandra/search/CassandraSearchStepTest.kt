@@ -15,12 +15,13 @@ import io.qalipsis.api.sync.asSuspended
 import io.qalipsis.plugins.cassandra.CassandraQueryResult
 import io.qalipsis.plugins.cassandra.CassandraRecord
 import io.qalipsis.plugins.cassandra.converters.CassandraResultSetConverter
+import io.qalipsis.test.coroutines.TestDispatcherProvider
 import io.qalipsis.test.mockk.WithMockk
 import io.qalipsis.test.mockk.relaxedMockk
-import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
 
@@ -30,6 +31,10 @@ import java.util.concurrent.CompletionStage
  */
 @WithMockk
 internal class CassandraSearchStepTest {
+
+    @JvmField
+    @RegisterExtension
+    val testDispatcherProvider = TestDispatcherProvider()
 
     private val queryFactory: (suspend (ctx: StepContext<*, *>, input: Any?) -> String) = relaxedMockk()
 
@@ -53,7 +58,7 @@ internal class CassandraSearchStepTest {
     private lateinit var cassandraSearchStep: CassandraSearchStep<Any>
 
     @BeforeEach
-    fun setUp() = runBlockingTest {
+    fun setUp() = testDispatcherProvider.runTest {
         val completionStageSession = spyk<CompletionStage<CqlSession>>(CompletableFuture())
         completionStageSession.toCompletableFuture().complete(mockk())
         val completableFutureSession = spyk(completionStageSession.asSuspended())
@@ -75,11 +80,18 @@ internal class CassandraSearchStepTest {
     }
 
     @Test
-    fun `should execute query with success`() = runBlockingTest {
+    fun `should execute query with success`() = testDispatcherProvider.runTest {
         val cassandraSearchReturn: CassandraQueryResult = mockk()
         coEvery { queryFactory.invoke(any(), any()) } returns "SELECT * FROM TRACKER WHERE ID = ?"
         coEvery { paramsFactory.invoke(any(), any()) } returns listOf(42)
-        coEvery { cassandraQueryClient.execute(any(), any(), any(), context.toEventTags()) } returns cassandraSearchReturn
+        coEvery {
+            cassandraQueryClient.execute(
+                any(),
+                any(),
+                any(),
+                context.toEventTags()
+            )
+        } returns cassandraSearchReturn
 
         cassandraSearchStep.execute(context)
 
@@ -90,7 +102,7 @@ internal class CassandraSearchStepTest {
     }
 
     @Test
-    fun `should throw exception when query is empty`() = runBlockingTest {
+    fun `should throw exception when query is empty`() = testDispatcherProvider.runTest {
         coEvery { queryFactory.invoke(any(), any()) } returns "select * from tracker"
         coEvery { paramsFactory.invoke(any(), any()) } returns listOf(42)
 
@@ -105,26 +117,34 @@ internal class CassandraSearchStepTest {
     }
 
     @Test
-    fun `should throw exception when parameters list is empty and query has at least one`() = runBlockingTest {
-        coEvery { queryFactory.invoke(any(), any()) } returns "SELECT * FROM TRACKER WHERE DEVICE_NAME = ?"
-        coEvery { paramsFactory.invoke(any(), any()) } returns emptyList()
+    fun `should throw exception when parameters list is empty and query has at least one`() =
+        testDispatcherProvider.runTest {
+            coEvery { queryFactory.invoke(any(), any()) } returns "SELECT * FROM TRACKER WHERE DEVICE_NAME = ?"
+            coEvery { paramsFactory.invoke(any(), any()) } returns emptyList()
 
-        assertThrows<Exception> {
-            cassandraSearchStep.execute(context)
-        }
+            assertThrows<Exception> {
+                cassandraSearchStep.execute(context)
+            }
 
-        coVerify(inverse = true) {
-            cassandraQueryClient.execute(any(), any(), any(), context.toEventTags())
-            converter.supply(any(), any(), any(), any())
+            coVerify(inverse = true) {
+                cassandraQueryClient.execute(any(), any(), any(), context.toEventTags())
+                converter.supply(any(), any(), any(), any())
         }
     }
 
     @Test
-    fun `should execute query when parameters list is empty and query has none`() = runBlockingTest {
+    fun `should execute query when parameters list is empty and query has none`() = testDispatcherProvider.runTest {
         val cassandraSearchReturn: CassandraQueryResult = mockk()
         coEvery { queryFactory.invoke(any(), any()) } returns "SELECT * FROM TRACKER"
         coEvery { paramsFactory.invoke(any(), any()) } returns emptyList()
-        coEvery { cassandraQueryClient.execute(any(), any(), any(), context.toEventTags()) } returns cassandraSearchReturn
+        coEvery {
+            cassandraQueryClient.execute(
+                any(),
+                any(),
+                any(),
+                context.toEventTags()
+            )
+        } returns cassandraSearchReturn
 
         cassandraSearchStep.execute(context)
 
