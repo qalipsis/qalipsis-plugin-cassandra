@@ -57,14 +57,12 @@ internal class CassandraPollStepSpecificationConverterTest :
 
     @Test
     override fun `should support expected spec`() {
-        assertThat(converter.support(relaxedMockk<CassandraPollStepSpecificationImpl>()))
-            .isTrue()
+        assertThat(converter.support(relaxedMockk<CassandraPollStepSpecificationImpl>())).isTrue()
     }
 
     @Test
     override fun `should not support unexpected spec`() {
-        assertThat(converter.support(relaxedMockk()))
-            .isFalse()
+        assertThat(converter.support(relaxedMockk())).isFalse()
     }
 
     @Test
@@ -109,7 +107,7 @@ internal class CassandraPollStepSpecificationConverterTest :
 
         // then
         assertThat(creationContext.createdStep!!).isInstanceOf(IterativeDatasourceStep::class).all {
-            prop("id").isEqualTo("my-step")
+            prop("name").isEqualTo("my-step")
             prop("reader").isNotNull().isInstanceOf(CassandraIterativeReader::class).all {
                 prop("ioCoroutineScope").isSameAs(ioCoroutineScope)
                 prop("sessionBuilder").isNotNull()
@@ -124,8 +122,8 @@ internal class CassandraPollStepSpecificationConverterTest :
             prop("processor").isNotNull().isInstanceOf(NoopDatasourceObjectProcessor::class)
             prop("converter").isNotNull().isSameAs(recordsConverter)
         }
-        verifyOnce { spiedConverter.buildConverter(eq(creationContext.createdStep!!.id), refEq(spec)) }
-        verifyNever { spiedConverter.buildConverter(neq(creationContext.createdStep!!.id), any()) }
+        verifyOnce { spiedConverter.buildConverter(eq(creationContext.createdStep!!.name), refEq(spec)) }
+        verifyNever { spiedConverter.buildConverter(neq(creationContext.createdStep!!.name), any()) }
 
         val channelFactory = creationContext.createdStep!!
             .getProperty<CassandraIterativeReader>("reader")
@@ -180,7 +178,7 @@ internal class CassandraPollStepSpecificationConverterTest :
 
         // then
         assertThat(creationContext.createdStep!!).isInstanceOf(IterativeDatasourceStep::class).all {
-            prop("id").isEqualTo("my-step")
+            prop("name").isEqualTo("my-step")
             prop("reader").isNotNull().isInstanceOf(CassandraIterativeReader::class).all {
                 prop("ioCoroutineScope").isSameAs(ioCoroutineScope)
                 prop("sessionBuilder").isNotNull()
@@ -195,8 +193,8 @@ internal class CassandraPollStepSpecificationConverterTest :
             prop("processor").isNotNull().isInstanceOf(NoopDatasourceObjectProcessor::class)
             prop("converter").isNotNull().isSameAs(recordsConverter)
         }
-        verifyOnce { spiedConverter.buildConverter(eq(creationContext.createdStep!!.id), refEq(spec)) }
-        verifyNever { spiedConverter.buildConverter(neq(creationContext.createdStep!!.id), any()) }
+        verifyOnce { spiedConverter.buildConverter(eq(creationContext.createdStep!!.name), refEq(spec)) }
+        verifyNever { spiedConverter.buildConverter(neq(creationContext.createdStep!!.name), any()) }
 
         val channelFactory = creationContext.createdStep!!
             .getProperty<CassandraIterativeReader>("reader")

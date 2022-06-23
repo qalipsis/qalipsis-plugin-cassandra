@@ -5,7 +5,7 @@ import com.datastax.oss.driver.api.core.CqlSession
 import com.datastax.oss.driver.api.core.CqlSessionBuilder
 import com.datastax.oss.driver.internal.core.util.concurrent.CompletableFutures
 import io.qalipsis.api.context.StepContext
-import io.qalipsis.api.context.StepId
+import io.qalipsis.api.context.StepName
 import io.qalipsis.api.context.StepOutput
 import io.qalipsis.api.context.StepStartStopContext
 import io.qalipsis.api.retry.RetryPolicy
@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicLong
  * @author Gabriel Moraes
  */
 internal class CassandraSearchStep<I>(
-    id: StepId,
+    id: StepName,
     retryPolicy: RetryPolicy?,
     private val sessionBuilder: CqlSessionBuilder,
     private val queryFactory: (suspend (ctx: StepContext<*, *>, input: I) -> String),

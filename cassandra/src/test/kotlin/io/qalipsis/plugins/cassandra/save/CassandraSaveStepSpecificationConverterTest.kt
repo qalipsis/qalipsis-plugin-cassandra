@@ -18,11 +18,12 @@ import io.qalipsis.api.steps.StepCreationContextImpl
 import io.qalipsis.plugins.cassandra.configuration.CassandraServerConfiguration
 import io.qalipsis.plugins.cassandra.configuration.DriverProfile
 import io.qalipsis.test.assertk.prop
+import io.qalipsis.test.coroutines.TestDispatcherProvider
 import io.qalipsis.test.mockk.WithMockk
 import io.qalipsis.test.mockk.relaxedMockk
 import io.qalipsis.test.steps.AbstractStepSpecificationConverterTest
-import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -33,6 +34,10 @@ import kotlin.coroutines.CoroutineContext
 @WithMockk
 internal class CassandraSaveStepSpecificationConverterTest :
     AbstractStepSpecificationConverterTest<CassandraSaveStepSpecificationConverter>() {
+
+    @JvmField
+    @RegisterExtension
+    val testDispatcherProvider = TestDispatcherProvider()
 
     @RelaxedMockK
     private lateinit var ioCoroutineContext: CoroutineContext
@@ -58,7 +63,7 @@ internal class CassandraSaveStepSpecificationConverterTest :
 
     @Test
     @Suppress("UNCHECK_CAST")
-    fun `should convert with retry policy and events only`() = runBlockingTest {
+    fun `should convert with retry policy and events only`() = testDispatcherProvider.runTest {
         // given
         val spec = CassandraSaveStepSpecificationImpl<Any>()
         spec.let {
@@ -88,7 +93,7 @@ internal class CassandraSaveStepSpecificationConverterTest :
 
         // then
         assertThat(creationContext.createdStep!!).isInstanceOf(CassandraSaveStep::class).all {
-            prop("id").isNotNull().isEqualTo("my-step")
+            prop("name").isNotNull().isEqualTo("my-step")
             prop("retryPolicy").isNotNull()
             prop("sessionBuilder").isNotNull().isInstanceOf(CqlSessionBuilder::class)
             prop("tableName").isEqualTo(tableName)
@@ -104,7 +109,7 @@ internal class CassandraSaveStepSpecificationConverterTest :
 
     @Test
     @Suppress("UNCHECK_CAST")
-    fun `should convert without retry policy but with meters`() = runBlockingTest {
+    fun `should convert without retry policy but with meters`() = testDispatcherProvider.runTest {
         // given
         val spec = CassandraSaveStepSpecificationImpl<Any>()
         spec.let {
@@ -132,7 +137,7 @@ internal class CassandraSaveStepSpecificationConverterTest :
 
         // then
         assertThat(creationContext.createdStep!!).isInstanceOf(CassandraSaveStep::class).all {
-            prop("id").isNotNull().isEqualTo("my-step")
+            prop("name").isNotNull().isEqualTo("my-step")
             prop("retryPolicy").isNull()
             prop("sessionBuilder").isNotNull().isInstanceOf(CqlSessionBuilder::class)
             prop("tableName").isEqualTo(tableName)
