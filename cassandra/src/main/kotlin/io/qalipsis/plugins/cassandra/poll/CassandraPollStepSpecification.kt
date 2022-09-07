@@ -14,7 +14,6 @@ import io.qalipsis.api.steps.UnicastSpecification
 import io.qalipsis.plugins.cassandra.CassandraNamespaceScenarioSpecification
 import io.qalipsis.plugins.cassandra.CassandraRecord
 import io.qalipsis.plugins.cassandra.CassandraStepSpecification
-import io.qalipsis.plugins.cassandra.Flattenable
 import io.qalipsis.plugins.cassandra.configuration.CassandraServerConfiguration
 import io.qalipsis.plugins.cassandra.configuration.DefaultValues
 import java.time.Duration
@@ -32,8 +31,8 @@ import javax.validation.constraints.NotNull
  * @author Maxim Golokhov
  */
 interface CassandraPollStepSpecification :
-    StepSpecification<Unit, List<CassandraRecord<Map<CqlIdentifier, Any?>>>, Flattenable<CassandraRecord<Map<CqlIdentifier, Any?>>>>,
-    CassandraStepSpecification<Unit, List<CassandraRecord<Map<CqlIdentifier, Any?>>>, Flattenable<CassandraRecord<Map<CqlIdentifier, Any?>>>>,
+    StepSpecification<Unit, CassandraPollResult, CassandraPollStepSpecification>,
+    CassandraStepSpecification<Unit, CassandraPollResult, CassandraPollStepSpecification>,
     LoopableSpecification, UnicastSpecification, BroadcastSpecification {
 
     /**
@@ -50,6 +49,11 @@ interface CassandraPollStepSpecification :
      * Defines the parameters to be used in the query placeholders.
      */
     fun parameters(parameters: List<Any>)
+
+    /**
+     * Defines the parameters to be used in the query placeholders.
+     */
+    fun parameters(vararg parameters: Any) = parameters(parameters.toList())
 
     /**
      * Defines the tie-breaker column being set as first column to sort and its type.
@@ -80,8 +84,7 @@ interface CassandraPollStepSpecification :
  */
 @Spec
 internal class CassandraPollStepSpecificationImpl :
-    AbstractStepSpecification<Unit, List<CassandraRecord<Map<CqlIdentifier, Any?>>>, Flattenable<CassandraRecord<Map<CqlIdentifier, Any?>>>>(),
-    Flattenable<CassandraRecord<Map<CqlIdentifier, Any?>>>,
+    AbstractStepSpecification<Unit, CassandraPollResult, CassandraPollStepSpecification>(),
     CassandraPollStepSpecification {
 
     override val singletonConfiguration: SingletonConfiguration = SingletonConfiguration(SingletonType.UNICAST)
@@ -100,8 +103,6 @@ internal class CassandraPollStepSpecificationImpl :
     internal var pollPeriod: Duration = Duration.ofSeconds(DefaultValues.pollDurationInSeconds)
 
     internal val monitoringConfig = StepMonitoringConfiguration()
-
-    internal var flattenOutput = false
 
     override fun connect(serverConfiguration: CassandraServerConfiguration.() -> Unit) {
         serversConfig.serverConfiguration()
@@ -131,13 +132,6 @@ internal class CassandraPollStepSpecificationImpl :
         this.monitoringConfig.monitoringConfig()
     }
 
-    override fun flatten(): StepSpecification<Unit, CassandraRecord<Map<CqlIdentifier, Any?>>, *> {
-        flattenOutput = true
-
-        @Suppress("UNCHECKED_CAST")
-        return this as StepSpecification<Unit, CassandraRecord<Map<CqlIdentifier, Any?>>, *>
-    }
-
 }
 
 /**
@@ -149,7 +143,7 @@ internal class CassandraPollStepSpecificationImpl :
  */
 fun CassandraNamespaceScenarioSpecification.poll(
     configurationBlock: CassandraPollStepSpecification.() -> Unit
-): Flattenable<CassandraRecord<Map<CqlIdentifier, Any?>>> {
+): CassandraPollStepSpecification {
     val step = CassandraPollStepSpecificationImpl()
     step.configurationBlock()
 

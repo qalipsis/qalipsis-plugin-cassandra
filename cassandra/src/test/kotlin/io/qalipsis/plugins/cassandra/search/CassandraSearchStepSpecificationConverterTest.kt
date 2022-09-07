@@ -10,19 +10,14 @@ import assertk.assertions.isNull
 import assertk.assertions.isSameAs
 import assertk.assertions.isTrue
 import com.datastax.oss.driver.api.core.CqlSessionBuilder
-import io.aerisconsulting.catadioptre.invokeInvisible
-import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.spyk
 import io.qalipsis.api.context.StepContext
 import io.qalipsis.api.steps.StepCreationContext
 import io.qalipsis.api.steps.StepCreationContextImpl
-import io.qalipsis.plugins.cassandra.CassandraQueryResult
 import io.qalipsis.plugins.cassandra.configuration.CassandraServerConfiguration
 import io.qalipsis.plugins.cassandra.configuration.DriverProfile
 import io.qalipsis.plugins.cassandra.converters.CassandraResultSetBatchRecordConverter
-import io.qalipsis.plugins.cassandra.converters.CassandraResultSetConverter
-import io.qalipsis.plugins.cassandra.converters.CassandraResultSetSingleRecordConverter
 import io.qalipsis.test.assertk.prop
 import io.qalipsis.test.coroutines.TestDispatcherProvider
 import io.qalipsis.test.mockk.WithMockk
@@ -89,10 +84,6 @@ internal class CassandraSearchStepSpecificationConverterTest :
         val creationContext = StepCreationContextImpl(scenarioSpecification, directedAcyclicGraph, spec)
         val spiedConverter = spyk(converter, recordPrivateCalls = true)
 
-        val recordsConverter: CassandraResultSetConverter<CassandraQueryResult, out Any, *> = relaxedMockk()
-        every { spiedConverter["buildConverter"](refEq(spec)) } returns recordsConverter
-
-
         // when
         spiedConverter.convert<Unit, Map<String, *>>(
             creationContext as StepCreationContext<CassandraSearchStepSpecificationImpl<*>>
@@ -105,7 +96,7 @@ internal class CassandraSearchStepSpecificationConverterTest :
             prop("sessionBuilder").isNotNull().isInstanceOf(CqlSessionBuilder::class)
             prop("queryFactory").isEqualTo(queryFactory)
             prop("parametersFactory").isEqualTo(paramsFactory)
-            prop("converter").isNotNull().isSameAs(recordsConverter)
+            prop("converter").isNotNull().isInstanceOf(CassandraResultSetBatchRecordConverter::class)
             prop("cassandraQueryClient").isNotNull().isInstanceOf(CassandraQueryClientImpl::class).all {
                 prop("ioCoroutineContext").isSameAs(ioCoroutineContext)
                 prop("eventsLogger").isSameAs(eventsLogger)
@@ -136,9 +127,6 @@ internal class CassandraSearchStepSpecificationConverterTest :
         val creationContext = StepCreationContextImpl(scenarioSpecification, directedAcyclicGraph, spec)
         val spiedConverter = spyk(converter, recordPrivateCalls = true)
 
-        val recordsConverter: CassandraResultSetConverter<CassandraQueryResult, out Any, *> = relaxedMockk()
-        every { spiedConverter["buildConverter"](refEq(spec)) } returns recordsConverter
-
         // when
         spiedConverter.convert<Unit, Map<String, *>>(
             creationContext as StepCreationContext<CassandraSearchStepSpecificationImpl<*>>
@@ -151,7 +139,7 @@ internal class CassandraSearchStepSpecificationConverterTest :
             prop("sessionBuilder").isNotNull().isInstanceOf(CqlSessionBuilder::class)
             prop("queryFactory").isEqualTo(queryFactory)
             prop("parametersFactory").isEqualTo(paramsFactory)
-            prop("converter").isNotNull().isSameAs(recordsConverter)
+            prop("converter").isNotNull().isInstanceOf(CassandraResultSetBatchRecordConverter::class)
             prop("cassandraQueryClient").isNotNull().isInstanceOf(CassandraQueryClientImpl::class).all {
                 prop("ioCoroutineContext").isSameAs(ioCoroutineContext)
                 prop("eventsLogger").isNull()
@@ -159,32 +147,5 @@ internal class CassandraSearchStepSpecificationConverterTest :
             }
         }
     }
-
-    @Test
-    fun `should build batch converter`() {
-        // given
-        val spec = CassandraSearchStepSpecificationImpl<Any>()
-
-        // when
-        val converter = converter.invokeInvisible<CassandraResultSetConverter<CassandraQueryResult, out Any, *>>("buildConverter", spec)
-
-        // then
-        assertThat(converter).isInstanceOf(CassandraResultSetBatchRecordConverter::class)
-    }
-
-    @Test
-    fun `should build single converter`() {
-        // given
-        val spec = CassandraSearchStepSpecificationImpl<Any>()
-        spec.flatten()
-
-        // when
-        val converter = converter.invokeInvisible<CassandraResultSetConverter<CassandraQueryResult, out Any, *>>("buildConverter", spec)
-
-
-        // then
-        assertThat(converter).isInstanceOf(CassandraResultSetSingleRecordConverter::class)
-    }
-
 
 }

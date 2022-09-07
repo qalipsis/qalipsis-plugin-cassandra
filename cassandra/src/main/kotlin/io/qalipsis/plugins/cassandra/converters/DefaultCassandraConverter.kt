@@ -10,21 +10,24 @@ import java.util.concurrent.atomic.AtomicLong
  *
  * @author Gabriel Moraes
  */
-internal open class     DefaultCassandraConverter {
+internal open class DefaultCassandraConverter {
 
     protected fun convert(offset: AtomicLong, value: List<Row>): List<CassandraRecord<Map<CqlIdentifier, Any?>>> {
+        return if (value.isNotEmpty()) {
+            val metaInfo = getMetaInfo(value.first())
+            value.map {
+                val rowAsMap = metaInfo.columnTypes.map { (name, type) ->
+                    name to it.get(name, type)
+                }.toMap()
 
-        val metaInfo = getMetaInfo(value.first())
-        return value.map {
-            val rowAsMap = metaInfo.columnTypes.map { (name, type) ->
-                name to it.get(name, type)
-            }.toMap()
-
-            CassandraRecord(
-                source = metaInfo.keyspace,
-                offset = offset.getAndIncrement(),
-                value = rowAsMap
-            )
+                CassandraRecord(
+                    source = metaInfo.keyspace,
+                    offset = offset.getAndIncrement(),
+                    value = rowAsMap
+                )
+            }
+        } else {
+            emptyList()
         }
     }
 

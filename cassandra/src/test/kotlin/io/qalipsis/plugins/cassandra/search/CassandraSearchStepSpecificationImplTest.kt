@@ -68,7 +68,6 @@ internal class CassandraSearchStepSpecificationImplTest {
                 prop(StepMonitoringConfiguration::meters).isFalse()
                 prop(StepMonitoringConfiguration::events).isFalse()
             }
-            prop(CassandraSearchStepSpecificationImpl<*>::flattenOutput).isFalse()
         }
 
         val queryFactory =
@@ -81,7 +80,6 @@ internal class CassandraSearchStepSpecificationImplTest {
                 "parametersFactory")
         assertThat(paramsFactory(relaxedMockk(), relaxedMockk())).hasSize(0)
     }
-
 
     @Test
     fun `should add a complete configuration for the step`() = testDispatcherProvider.runTest {
@@ -107,7 +105,7 @@ internal class CassandraSearchStepSpecificationImplTest {
                 events = true
             }
 
-        }.flatten()
+        }
 
         assertThat(previousStep.nextSteps[0]).isInstanceOf(CassandraSearchStepSpecificationImpl::class).all {
             prop("name") { CassandraSearchStepSpecificationImpl<*>::name.call(it) }.isEqualTo("my-search-step")
@@ -127,7 +125,6 @@ internal class CassandraSearchStepSpecificationImplTest {
                 prop(StepMonitoringConfiguration::meters).isTrue()
                 prop(StepMonitoringConfiguration::events).isTrue()
             }
-            prop(CassandraSearchStepSpecificationImpl<*>::flattenOutput).isTrue()
         }
 
         val queryFactory =

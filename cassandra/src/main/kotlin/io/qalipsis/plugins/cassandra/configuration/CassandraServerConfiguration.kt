@@ -17,16 +17,15 @@ import javax.validation.constraints.NotEmpty
 data class CassandraServerConfiguration (
     @field:NotEmpty var servers: List<String> = listOf(DefaultValues.server),
     @field:NotBlank var keyspace: String = "",
-    var datacenterProfile: DriverProfile = DriverProfile.LOCAL,
+    var datacenterProfile: DriverProfile = DriverProfile.DEFAULT,
     @field:NotBlank var datacenterName: String = "",
 )
 
-
 enum class DriverProfile {
-    LOCAL, PEER
+    LOCAL, PEER, DEFAULT
 }
 
 internal object DefaultValues {
     const val pollDurationInSeconds = 10L
-    const val server = "localhost:27017"
+    const val server = "localhost:9042"
 }

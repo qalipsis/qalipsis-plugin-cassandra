@@ -25,8 +25,7 @@ class CqlSessionBuilderFactory(
             }
 
             withKeyspace(serversConfig.keyspace)
-
-            withLocalDatacenter(serversConfig.datacenterProfile.toString(), serversConfig.datacenterName)
+            withLocalDatacenter("${serversConfig.datacenterProfile}".lowercase(), serversConfig.datacenterName)
         }
     }
 

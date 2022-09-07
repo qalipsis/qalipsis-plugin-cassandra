@@ -13,7 +13,6 @@ import io.qalipsis.plugins.cassandra.CassandraQueryResult
 import io.qalipsis.plugins.cassandra.configuration.CqlSessionBuilderFactory
 import io.qalipsis.plugins.cassandra.converters.CassandraResultSetBatchRecordConverter
 import io.qalipsis.plugins.cassandra.converters.CassandraResultSetConverter
-import io.qalipsis.plugins.cassandra.converters.CassandraResultSetSingleRecordConverter
 import jakarta.inject.Named
 import kotlin.coroutines.CoroutineContext
 
@@ -46,7 +45,7 @@ internal class CassandraSearchStepSpecificationConverter(
             sessionBuilder = sessionBuilder,
             queryFactory = spec.queryFactory as suspend (ctx: StepContext<*, *>, input: Any?) -> String,
             parametersFactory = spec.parametersFactory as suspend (ctx: StepContext<*, *>, input: Any?) -> List<Any>,
-            converter = buildConverter(spec) as CassandraResultSetConverter<CassandraQueryResult, Any, Any?>,
+            converter = CassandraResultSetBatchRecordConverter<Any>() as CassandraResultSetConverter<CassandraQueryResult, Any, Any?>,
             cassandraQueryClient = CassandraQueryClientImpl(
                 ioCoroutineContext,
                 supplyIf(spec.monitoringConfig.events) { eventsLogger },
@@ -55,18 +54,6 @@ internal class CassandraSearchStepSpecificationConverter(
             )
         )
         creationContext.createdStep(step)
-    }
-
-
-    private fun buildConverter(
-        spec: CassandraSearchStepSpecificationImpl<*>
-    ): CassandraResultSetConverter<CassandraQueryResult, out Any, *> {
-
-        return if (spec.flattenOutput) {
-            CassandraResultSetSingleRecordConverter<Any>()
-        } else {
-            CassandraResultSetBatchRecordConverter<Any>()
-        }
     }
 
 }

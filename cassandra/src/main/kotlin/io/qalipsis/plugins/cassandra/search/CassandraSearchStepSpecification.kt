@@ -20,8 +20,8 @@ import io.qalipsis.plugins.cassandra.configuration.CassandraServerConfiguration
  * @author Gabriel Moraes
  */
 interface CassandraSearchStepSpecification<I> :
-    StepSpecification<I, Pair<I, List<CassandraRecord<Map<CqlIdentifier, Any?>>>>, CassandraSearchStepSpecification<I>>,
-    CassandraStepSpecification<I, Pair<I, List<CassandraRecord<Map<CqlIdentifier, Any?>>>>, CassandraSearchStepSpecification<I>> {
+    StepSpecification<I, CassandraSearchResult<I>, CassandraSearchStepSpecification<I>>,
+    CassandraStepSpecification<I, CassandraSearchResult<I>, CassandraSearchStepSpecification<I>> {
 
     /**
      * Configures connection to the Cassandra cluster.
@@ -42,11 +42,6 @@ interface CassandraSearchStepSpecification<I> :
      * Configures the monitoring of the search step.
      */
     fun monitoring(monitoringConfig: StepMonitoringConfiguration.() -> Unit)
-
-    /**
-     * Returns each record of a batch individually to the next steps.
-     */
-    fun flatten(): StepSpecification<I, CassandraRecord<Map<CqlIdentifier, Any?>>, *>
 }
 
 /**
@@ -57,19 +52,17 @@ interface CassandraSearchStepSpecification<I> :
 @Spec
 internal class CassandraSearchStepSpecificationImpl<I> :
     CassandraSearchStepSpecification<I>,
-    AbstractStepSpecification<I, Pair<I, List<CassandraRecord<Map<CqlIdentifier, Any?>>>>, CassandraSearchStepSpecification<I>>() {
+    AbstractStepSpecification<I, CassandraSearchResult<I>, CassandraSearchStepSpecification<I>>() {
 
     internal var serversConfig = CassandraServerConfiguration()
 
     internal var queryFactory: (suspend (ctx: StepContext<*, *>, input: I) -> String) =
-            { _, _ -> "" }
+        { _, _ -> "" }
 
     internal var parametersFactory: (suspend (ctx: StepContext<*, *>, input: I) -> List<Any>) =
-            { _, _ -> emptyList() }
+        { _, _ -> emptyList() }
 
     internal var monitoringConfig = StepMonitoringConfiguration()
-
-    internal var flattenOutput = false
 
     override fun connect(serverConfiguration: CassandraServerConfiguration.() -> Unit) {
         serversConfig.serverConfiguration()
@@ -85,13 +78,6 @@ internal class CassandraSearchStepSpecificationImpl<I> :
 
     override fun monitoring(monitoringConfig: StepMonitoringConfiguration.() -> Unit) {
         this.monitoringConfig.monitoringConfig()
-    }
-
-    override fun flatten(): StepSpecification<I, CassandraRecord<Map<CqlIdentifier, Any?>>, *> {
-        flattenOutput = true
-
-        @Suppress("UNCHECKED_CAST")
-        return this as StepSpecification<I, CassandraRecord<Map<CqlIdentifier, Any?>>, *>
     }
 }
 

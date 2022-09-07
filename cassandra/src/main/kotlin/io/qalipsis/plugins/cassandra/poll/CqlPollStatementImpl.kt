@@ -20,19 +20,19 @@ import org.apache.cassandra.cql3.statements.SelectStatement
  * @author Maxim Golokhov
  * @author Gabriel Moraes
  */
-internal class CqlPollStatementImpl (
+internal class CqlPollStatementImpl(
     private val query: String,
     private val parameters: List<Any>,
     private val tieBreaker: TieBreaker
-): CqlPollStatement {
+) : CqlPollStatement {
     private var sortingColumns: Map<String, Order> = mapOf()
 
     private var previousTieBreakerValue: Map<String, Any> = emptyMap()
     private var isUsingTieBreakerCondition = false
 
     private var parsedInitialQuery =
-        QueryProcessor.parseStatement(query) as? SelectStatement.RawStatement ?:
-            throw IllegalArgumentException("Query must be a select statement")
+        QueryProcessor.parseStatement(query) as? SelectStatement.RawStatement
+            ?: throw IllegalArgumentException("Query must be a select statement")
 
     private var currentCqlStatement: String = query
 
@@ -51,8 +51,12 @@ internal class CqlPollStatementImpl (
         }
 
     private fun tieBreakerShouldBeFirstSortingColumn() {
-        if (tieBreaker.name() !in sortingColumns.keys.first())
+        if (sortingColumns.keys.isEmpty()) {
+            throw IllegalArgumentException("At least one sorting field should be set in the query")
+        }
+        if (tieBreaker.name() !in sortingColumns.keys.first()) {
             throw IllegalArgumentException("The tie-breaker should be set as the first sorting column")
+        }
     }
 
     private fun parseOrder(order: Boolean): Order {
@@ -62,8 +66,8 @@ internal class CqlPollStatementImpl (
         }
     }
 
-    private fun getOperator(): String{
-        return when(sortingColumns[tieBreaker.name()]) {
+    private fun getOperator(): String {
+        return when (sortingColumns[tieBreaker.name()]) {
             Order.ASC -> ">="
             Order.DESC -> "<="
             else -> throw IllegalStateException("Unsupported type for ordering statement")
@@ -72,13 +76,13 @@ internal class CqlPollStatementImpl (
 
     private fun formQuery(): String {
         val cqlStatementBuilder = StringBuilder(currentCqlStatement)
-        if (previousTieBreakerValue.isNotEmpty() && !isUsingTieBreakerCondition){
+        if (previousTieBreakerValue.isNotEmpty() && !isUsingTieBreakerCondition) {
 
             val insertPosition = currentCqlStatement.indexOf("order", 0, true)
 
-            var tieBreakerCondition: String = if (parsedInitialQuery.whereClause.relations.isNotEmpty()){
+            var tieBreakerCondition: String = if (parsedInitialQuery.whereClause.relations.isNotEmpty()) {
                 "AND "
-            }else{
+            } else {
                 "WHERE "
             }
             tieBreakerCondition += "${tieBreaker.name()} ${getOperator()} ? "
@@ -91,15 +95,17 @@ internal class CqlPollStatementImpl (
         return currentCqlStatement
     }
 
-    private fun getPreviousTieBreaker(rows: List<Row>): Any {
-        return rows.last().get(tieBreaker.name(), tieBreaker.type!!)!!
-    }
-
     override fun saveTieBreakerValueForNextPoll(rows: List<Row>) {
-        previousTieBreakerValue = mapOf(tieBreaker.name() to getPreviousTieBreaker(rows))
+        if (rows.isNotEmpty()) {
+            val tieBreakerType = tieBreaker.type!!
+            val tieBreakerValue = rows.lastOrNull()?.get(tieBreaker.name(), tieBreakerType)
+            if (tieBreakerValue != null) {
+                previousTieBreakerValue = mapOf(tieBreaker.name() to tieBreakerValue)
+            }
+        }
     }
 
-    override fun compose(): Pair <String, List<Any>> {
+    override fun compose(): Pair<String, List<Any>> {
         val queryWithPlaceholders = formQuery()
         return Pair(queryWithPlaceholders, (parameters + previousTieBreakerValue.values))
     }
