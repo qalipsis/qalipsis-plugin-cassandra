@@ -8,10 +8,13 @@ import io.qalipsis.api.lang.supplyIf
 import io.qalipsis.api.steps.StepCreationContext
 import io.qalipsis.api.steps.StepSpecification
 import io.qalipsis.api.steps.StepSpecificationConverter
+import io.qalipsis.api.steps.datasource.DatasourceObjectConverter
 import io.qalipsis.api.steps.datasource.IterativeDatasourceStep
 import io.qalipsis.api.steps.datasource.processors.NoopDatasourceObjectProcessor
+import io.qalipsis.plugins.cassandra.CassandraQueryResult
 import io.qalipsis.plugins.cassandra.configuration.CqlSessionBuilderFactory
 import io.qalipsis.plugins.cassandra.converters.CassandraBatchRecordConverter
+import io.qalipsis.plugins.cassandra.converters.CassandraSingleRecordConverter
 import io.qalipsis.plugins.cassandra.search.CassandraQueryClientImpl
 import jakarta.inject.Named
 import kotlinx.coroutines.CoroutineScope
@@ -51,11 +54,14 @@ internal class CassandraPollStepSpecificationConverter(
                 "poll"
             ),
         )
+
+        val converter = buildConverter(stepId, spec)
+
         val step = IterativeDatasourceStep(
             stepId,
             reader,
             NoopDatasourceObjectProcessor(),
-            CassandraBatchRecordConverter()
+            converter
         )
         creationContext.createdStep(step)
     }
@@ -68,5 +74,17 @@ internal class CassandraPollStepSpecificationConverter(
             parameters = spec.parameters,
             tieBreaker = spec.tieBreakerConfig,
         )
+    }
+
+    fun buildConverter(
+        stepId: String,
+        spec: CassandraPollStepSpecificationImpl,
+    ): DatasourceObjectConverter<CassandraQueryResult, out Any> {
+
+        return if (spec.flattenOutput) {
+            CassandraSingleRecordConverter()
+        } else {
+            CassandraBatchRecordConverter()
+        }
     }
 }

@@ -5,6 +5,7 @@ import io.qalipsis.api.annotations.Spec
 import io.qalipsis.api.scenario.StepSpecificationRegistry
 import io.qalipsis.api.steps.AbstractStepSpecification
 import io.qalipsis.api.steps.BroadcastSpecification
+import io.qalipsis.api.steps.ConfigurableStepSpecification
 import io.qalipsis.api.steps.LoopableSpecification
 import io.qalipsis.api.steps.SingletonConfiguration
 import io.qalipsis.api.steps.SingletonType
@@ -33,6 +34,7 @@ import javax.validation.constraints.NotNull
 interface CassandraPollStepSpecification :
     StepSpecification<Unit, CassandraPollResult, CassandraPollStepSpecification>,
     CassandraStepSpecification<Unit, CassandraPollResult, CassandraPollStepSpecification>,
+    ConfigurableStepSpecification<Unit, CassandraPollResult, CassandraPollStepSpecification>,
     LoopableSpecification, UnicastSpecification, BroadcastSpecification {
 
     /**
@@ -49,11 +51,6 @@ interface CassandraPollStepSpecification :
      * Defines the parameters to be used in the query placeholders.
      */
     fun parameters(parameters: List<Any>)
-
-    /**
-     * Defines the parameters to be used in the query placeholders.
-     */
-    fun parameters(vararg parameters: Any) = parameters(parameters.toList())
 
     /**
      * Defines the tie-breaker column being set as first column to sort and its type.
@@ -75,6 +72,11 @@ interface CassandraPollStepSpecification :
      * Configures the monitoring of the poll step.
      */
     fun monitoring(monitoringConfig: StepMonitoringConfiguration.() -> Unit)
+
+    /**
+     * Returns the values individually.
+     */
+    fun flatten(): StepSpecification<Unit, CassandraRecord<Map<CqlIdentifier, Any?>>, *>
 }
 
 /**
@@ -104,6 +106,8 @@ internal class CassandraPollStepSpecificationImpl :
 
     internal val monitoringConfig = StepMonitoringConfiguration()
 
+    internal var flattenOutput = false
+
     override fun connect(serverConfiguration: CassandraServerConfiguration.() -> Unit) {
         serversConfig.serverConfiguration()
     }
@@ -130,6 +134,13 @@ internal class CassandraPollStepSpecificationImpl :
 
     override fun monitoring(monitoringConfig: StepMonitoringConfiguration.() -> Unit) {
         this.monitoringConfig.monitoringConfig()
+    }
+
+    override fun flatten(): StepSpecification<Unit, CassandraRecord<Map<CqlIdentifier, Any?>>, *> {
+        flattenOutput = true
+
+        @Suppress("UNCHECKED_CAST")
+        return this as StepSpecification<Unit, CassandraRecord<Map<CqlIdentifier, Any?>>, *>
     }
 
 }
