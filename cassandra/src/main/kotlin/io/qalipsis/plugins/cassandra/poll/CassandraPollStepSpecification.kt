@@ -5,6 +5,7 @@ import io.qalipsis.api.annotations.Spec
 import io.qalipsis.api.scenario.StepSpecificationRegistry
 import io.qalipsis.api.steps.AbstractStepSpecification
 import io.qalipsis.api.steps.BroadcastSpecification
+import io.qalipsis.api.steps.ConfigurableStepSpecification
 import io.qalipsis.api.steps.LoopableSpecification
 import io.qalipsis.api.steps.SingletonConfiguration
 import io.qalipsis.api.steps.SingletonType
@@ -33,6 +34,7 @@ import javax.validation.constraints.NotNull
 interface CassandraPollStepSpecification :
     StepSpecification<Unit, CassandraPollResult, CassandraPollStepSpecification>,
     CassandraStepSpecification<Unit, CassandraPollResult, CassandraPollStepSpecification>,
+    ConfigurableStepSpecification<Unit, CassandraPollResult, CassandraPollStepSpecification>,
     LoopableSpecification, UnicastSpecification, BroadcastSpecification {
 
     /**

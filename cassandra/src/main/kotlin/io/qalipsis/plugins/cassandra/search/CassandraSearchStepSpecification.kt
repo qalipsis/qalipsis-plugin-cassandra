@@ -4,6 +4,7 @@ import com.datastax.oss.driver.api.core.CqlIdentifier
 import io.qalipsis.api.annotations.Spec
 import io.qalipsis.api.context.StepContext
 import io.qalipsis.api.steps.AbstractStepSpecification
+import io.qalipsis.api.steps.ConfigurableStepSpecification
 import io.qalipsis.api.steps.StepMonitoringConfiguration
 import io.qalipsis.api.steps.StepSpecification
 import io.qalipsis.plugins.cassandra.CassandraRecord
@@ -21,6 +22,7 @@ import io.qalipsis.plugins.cassandra.configuration.CassandraServerConfiguration
  */
 interface CassandraSearchStepSpecification<I> :
     StepSpecification<I, CassandraSearchResult<I>, CassandraSearchStepSpecification<I>>,
+    ConfigurableStepSpecification<I, CassandraSearchResult<I>, CassandraSearchStepSpecification<I>>,
     CassandraStepSpecification<I, CassandraSearchResult<I>, CassandraSearchStepSpecification<I>> {
 
     /**

@@ -3,6 +3,7 @@ package io.qalipsis.plugins.cassandra.save
 import io.qalipsis.api.annotations.Spec
 import io.qalipsis.api.context.StepContext
 import io.qalipsis.api.steps.AbstractStepSpecification
+import io.qalipsis.api.steps.ConfigurableStepSpecification
 import io.qalipsis.api.steps.StepMonitoringConfiguration
 import io.qalipsis.api.steps.StepSpecification
 import io.qalipsis.plugins.cassandra.CassandraStepSpecification
@@ -17,6 +18,7 @@ import io.qalipsis.plugins.cassandra.configuration.CassandraServerConfiguration
  */
 interface CassandraSaveStepSpecification<I> :
     StepSpecification<I, CassandraSaveResult<I>, CassandraSaveStepSpecification<I>>,
+    ConfigurableStepSpecification<I, CassandraSaveResult<I>, CassandraSaveStepSpecification<I>>,
     CassandraStepSpecification<I, CassandraSaveResult<I>, CassandraSaveStepSpecification<I>> {
 
     /**
