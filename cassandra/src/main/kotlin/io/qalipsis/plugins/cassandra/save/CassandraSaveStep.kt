@@ -49,8 +49,8 @@ internal class CassandraSaveStep<I>(
         val tableName = tableName(context, input)
         val columns = columns(context, input)
 
-        val metrics = cassandraSaveQueryClient.execute(session, tableName, columns, rows, context.toEventTags())
-        context.send(CassandraSaveResult(input, meters = metrics))
+        val meters = cassandraSaveQueryClient.execute(session, tableName, columns, rows, context.toEventTags())
+        context.send(CassandraSaveResult(input, meters))
     }
 
     override suspend fun stop(context: StepStartStopContext) {
