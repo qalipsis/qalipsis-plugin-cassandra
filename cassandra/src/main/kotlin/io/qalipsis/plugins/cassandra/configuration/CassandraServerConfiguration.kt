@@ -14,7 +14,7 @@ import javax.validation.constraints.NotEmpty
  * individual queries.
  * @property datacenterName datacenter name.
  */
-data class CassandraServerConfiguration (
+data class CassandraServerConfiguration internal constructor(
     @field:NotEmpty var servers: List<String> = listOf(DefaultValues.server),
     @field:NotBlank var keyspace: String = "",
     var datacenterProfile: DriverProfile = DriverProfile.DEFAULT,

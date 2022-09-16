@@ -53,6 +53,11 @@ interface CassandraPollStepSpecification :
     fun parameters(parameters: List<Any>)
 
     /**
+     * Defines the parameters to be used in the query placeholders.
+     */
+    fun parameters(vararg parameters: Any) = parameters(parameters.toList())
+
+    /**
      * Defines the tie-breaker column being set as first column to sort and its type.
      *
      */
