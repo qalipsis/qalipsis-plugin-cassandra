@@ -107,7 +107,7 @@ allprojects {
     publishing {
         publications {
             filterIsInstance<MavenPublication>().forEach {
-                it.artifactId = "plugin-${project.name}"
+                it.artifactId = project.name
             }
         }
         repositories {

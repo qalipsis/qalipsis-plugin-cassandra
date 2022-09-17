@@ -21,7 +21,7 @@ plugins {
     `java-test-fixtures`
 }
 
-description = "Qalipsis Plugins - Cassandra"
+description = "QALIPSIS plugin for Apache Cassandra"
 
 allOpen {
     annotations(

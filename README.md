@@ -4,14 +4,12 @@
 
 ## Introduction
 
-This repository contains the API modules of QALIPSIS, an enterprise-grade load and performance-testing tool especially
+This repository contains the Apache Cassandra plugin of QALIPSIS, an enterprise-grade load and performance-testing tool especially
 designed for distributed systems. It is a step above other load test applications that merely evaluate your system
 internally.
 
 * QALIPSIS is developer-centric with a low learning curve that makes it easy to use and extremely efficient.
 * QALIPSIS is developed in Kotlin to gain the benefits of the Java ecosystem and provide seamless system performance.
-* The basic out-of-the box QALIPSIS tool is completely free of charge. Commercial-licensed-based plugins, the
-  cloud-based application, and other premium extensions are not included in the basic out-of-the box QALIPSIS tool.
 * QALIPSIS is designed to test the performance of distributed and monolithic systems.
 * QALIPSIS collects data from operating systems, databases, and monitoring tools.
 * QALIPSIS cross-checks system metrics and performs data verification to ensure that the test systems is performing as
