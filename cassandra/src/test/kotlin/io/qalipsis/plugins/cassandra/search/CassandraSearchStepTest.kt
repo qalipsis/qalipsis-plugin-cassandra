@@ -1,3 +1,19 @@
+/*
+ * Copyright 2022 AERIS IT Solutions GmbH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
 package io.qalipsis.plugins.cassandra.search
 
 import com.datastax.oss.driver.api.core.CqlIdentifier
@@ -20,7 +36,6 @@ import io.qalipsis.test.mockk.WithMockk
 import io.qalipsis.test.mockk.relaxedMockk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
@@ -101,56 +116,4 @@ internal class CassandraSearchStepTest {
         }
     }
 
-    @Test
-    fun `should throw exception when query is empty`() = testDispatcherProvider.runTest {
-        coEvery { queryFactory.invoke(any(), any()) } returns "select * from tracker"
-        coEvery { paramsFactory.invoke(any(), any()) } returns listOf(42)
-
-        assertThrows<Exception> {
-            cassandraSearchStep.execute(context)
-        }
-
-        coVerify(inverse = true) {
-            cassandraQueryClient.execute(any(), any(), any(), context.toEventTags())
-            converter.supply(any(), any(), any(), any())
-        }
-    }
-
-    @Test
-    fun `should throw exception when parameters list is empty and query has at least one`() =
-        testDispatcherProvider.runTest {
-            coEvery { queryFactory.invoke(any(), any()) } returns "SELECT * FROM TRACKER WHERE DEVICE_NAME = ?"
-            coEvery { paramsFactory.invoke(any(), any()) } returns emptyList()
-
-            assertThrows<Exception> {
-                cassandraSearchStep.execute(context)
-            }
-
-            coVerify(inverse = true) {
-                cassandraQueryClient.execute(any(), any(), any(), context.toEventTags())
-                converter.supply(any(), any(), any(), any())
-        }
-    }
-
-    @Test
-    fun `should execute query when parameters list is empty and query has none`() = testDispatcherProvider.runTest {
-        val cassandraSearchReturn: CassandraQueryResult = mockk()
-        coEvery { queryFactory.invoke(any(), any()) } returns "SELECT * FROM TRACKER"
-        coEvery { paramsFactory.invoke(any(), any()) } returns emptyList()
-        coEvery {
-            cassandraQueryClient.execute(
-                any(),
-                any(),
-                any(),
-                context.toEventTags()
-            )
-        } returns cassandraSearchReturn
-
-        cassandraSearchStep.execute(context)
-
-        coVerify {
-            cassandraQueryClient.execute(any(), "SELECT * FROM TRACKER", emptyList(), context.toEventTags())
-            converter.supply(any(), cassandraSearchReturn, any(), any())
-        }
-    }
 }
