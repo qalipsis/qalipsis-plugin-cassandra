@@ -20,10 +20,10 @@ import com.datastax.oss.driver.api.core.CqlSession
 import com.datastax.oss.driver.api.core.cql.AsyncResultSet
 import com.datastax.oss.driver.api.core.cql.Row
 import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
 import io.qalipsis.api.context.StepStartStopContext
 import io.qalipsis.api.events.EventsLogger
+import io.qalipsis.api.meters.CampaignMeterRegistry
 import io.qalipsis.api.sync.asSuspended
 import io.qalipsis.plugins.cassandra.CassandraQueryMeters
 import io.qalipsis.plugins.cassandra.CassandraQueryResult
@@ -42,7 +42,7 @@ import kotlin.coroutines.CoroutineContext
 internal class CassandraQueryClientImpl(
     private val ioCoroutineContext: CoroutineContext,
     private val eventsLogger: EventsLogger?,
-    private val meterRegistry: MeterRegistry?,
+    private val meterRegistry: CampaignMeterRegistry?,
     stepType: String,
 ) : CassandraQueryClient {
 

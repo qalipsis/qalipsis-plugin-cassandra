@@ -28,7 +28,6 @@ import assertk.assertions.prop
 import com.datastax.oss.driver.api.core.cql.AsyncResultSet
 import com.datastax.oss.driver.api.core.cql.Row
 import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.Timer
 import io.mockk.confirmVerified
@@ -38,6 +37,7 @@ import io.mockk.verify
 import io.mockk.verifyOrder
 import io.qalipsis.api.context.StepStartStopContext
 import io.qalipsis.api.events.EventsLogger
+import io.qalipsis.api.meters.CampaignMeterRegistry
 import io.qalipsis.api.sync.asSuspended
 import io.qalipsis.plugins.cassandra.AbstractCassandraIntegrationTest
 import io.qalipsis.test.mockk.relaxedMockk
@@ -82,7 +82,7 @@ internal class CassandraSaveQueryClientIntegrationTest : AbstractCassandraIntegr
         val timeToFailure = relaxedMockk<Timer>()
         val savedDocuments = relaxedMockk<Counter>()
         val failedDocuments = relaxedMockk<Counter>()
-        val meterRegistry = relaxedMockk<MeterRegistry> {
+        val meterRegistry = relaxedMockk<CampaignMeterRegistry> {
             every { counter("cassandra-save-saving-documents", refEq(metersTags)) } returns recordsToBeSent
             every { timer("cassandra-save-time-to-response", refEq(metersTags)) } returns timeToSuccess
             every { timer("cassandra-save-time-to-failure", refEq(metersTags)) } returns timeToFailure
