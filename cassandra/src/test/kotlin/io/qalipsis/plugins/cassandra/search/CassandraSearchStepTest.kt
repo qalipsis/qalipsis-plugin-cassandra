@@ -27,7 +27,6 @@ import io.mockk.mockk
 import io.mockk.spyk
 import io.qalipsis.api.context.StepContext
 import io.qalipsis.api.retry.RetryPolicy
-import io.qalipsis.api.sync.asSuspended
 import io.qalipsis.plugins.cassandra.CassandraQueryResult
 import io.qalipsis.plugins.cassandra.CassandraRecord
 import io.qalipsis.plugins.cassandra.converters.CassandraResultSetConverter
@@ -76,10 +75,7 @@ internal class CassandraSearchStepTest {
     fun setUp() = testDispatcherProvider.runTest {
         val completionStageSession = spyk<CompletionStage<CqlSession>>(CompletableFuture())
         completionStageSession.toCompletableFuture().complete(mockk())
-        val completableFutureSession = spyk(completionStageSession.asSuspended())
         every { cqlBuilder.buildAsync() } returns completionStageSession
-        every { completionStageSession.asSuspended() } returns completableFutureSession
-        coEvery { completableFutureSession.get(any()) } returns mockk()
 
         cassandraSearchStep = CassandraSearchStep(
             id = "my-step",
