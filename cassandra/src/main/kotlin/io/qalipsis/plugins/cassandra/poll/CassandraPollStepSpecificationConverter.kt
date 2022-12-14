@@ -16,11 +16,11 @@
 
 package io.qalipsis.plugins.cassandra.poll
 
-import io.micrometer.core.instrument.MeterRegistry
 import io.qalipsis.api.Executors
 import io.qalipsis.api.annotations.StepConverter
 import io.qalipsis.api.events.EventsLogger
 import io.qalipsis.api.lang.supplyIf
+import io.qalipsis.api.meters.CampaignMeterRegistry
 import io.qalipsis.api.steps.StepCreationContext
 import io.qalipsis.api.steps.StepSpecification
 import io.qalipsis.api.steps.StepSpecificationConverter
@@ -43,7 +43,7 @@ import kotlin.coroutines.CoroutineContext
  */
 @StepConverter
 internal class CassandraPollStepSpecificationConverter(
-    private val meterRegistry: MeterRegistry,
+    private val meterRegistry: CampaignMeterRegistry,
     private val eventsLogger: EventsLogger,
     @Named(Executors.IO_EXECUTOR_NAME) private val ioCoroutineScope: CoroutineScope,
     @Named(Executors.IO_EXECUTOR_NAME) private val ioCoroutineContext: CoroutineContext

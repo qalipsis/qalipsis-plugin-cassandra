@@ -28,7 +28,6 @@ import assertk.assertions.isSameAs
 import assertk.assertions.prop
 import com.datastax.oss.driver.api.core.servererrors.InvalidQueryException
 import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.Timer
 import io.mockk.confirmVerified
@@ -37,6 +36,7 @@ import io.mockk.slot
 import io.mockk.verify
 import io.qalipsis.api.context.StepStartStopContext
 import io.qalipsis.api.events.EventsLogger
+import io.qalipsis.api.meters.CampaignMeterRegistry
 import io.qalipsis.plugins.cassandra.AbstractCassandraIntegrationTest
 import io.qalipsis.test.mockk.relaxedMockk
 import org.junit.jupiter.api.AfterEach
@@ -81,7 +81,7 @@ internal class CassandraQueryClientIntegrationTest : AbstractCassandraIntegratio
         val timeToFailure = relaxedMockk<Timer>()
         val successCounter = relaxedMockk<Counter>()
         val failureCounter = relaxedMockk<Counter>()
-        val meterRegistry = relaxedMockk<MeterRegistry> {
+        val meterRegistry = relaxedMockk<CampaignMeterRegistry> {
             every { counter("cassandra-test-fetched-records", refEq(metersTags)) } returns recordsCount
             every { timer("cassandra-test-time-to-response", refEq(metersTags)) } returns timeToSuccess
             every { timer("cassandra-test-time-to-failure", refEq(metersTags)) } returns timeToFailure
@@ -186,7 +186,7 @@ internal class CassandraQueryClientIntegrationTest : AbstractCassandraIntegratio
         val timeToFailure = relaxedMockk<Timer>()
         val successCounter = relaxedMockk<Counter>()
         val failureCounter = relaxedMockk<Counter>()
-        val meterRegistry = relaxedMockk<MeterRegistry> {
+        val meterRegistry = relaxedMockk<CampaignMeterRegistry> {
             every { counter("cassandra-test-fetched-records", refEq(metersTags)) } returns recordsCount
             every { timer("cassandra-test-time-to-response", refEq(metersTags)) } returns timeToSuccess
             every { timer("cassandra-test-time-to-failure", refEq(metersTags)) } returns timeToFailure

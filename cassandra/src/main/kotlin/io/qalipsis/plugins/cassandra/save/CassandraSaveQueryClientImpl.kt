@@ -18,10 +18,10 @@ package io.qalipsis.plugins.cassandra.save
 
 import com.datastax.oss.driver.api.core.CqlSession
 import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
 import io.qalipsis.api.context.StepStartStopContext
 import io.qalipsis.api.events.EventsLogger
+import io.qalipsis.api.meters.CampaignMeterRegistry
 import io.qalipsis.api.sync.asSuspended
 import kotlinx.coroutines.withContext
 import java.time.Duration
@@ -41,7 +41,7 @@ import kotlin.coroutines.CoroutineContext
 internal class CassandraSaveQueryClientImpl(
     private val ioCoroutineContext: CoroutineContext,
     private val eventsLogger: EventsLogger?,
-    private val meterRegistry: MeterRegistry?
+    private val meterRegistry: CampaignMeterRegistry?
 ) : CassandraSaveQueryClient {
 
     private val eventPrefix = "cassandra.save"
