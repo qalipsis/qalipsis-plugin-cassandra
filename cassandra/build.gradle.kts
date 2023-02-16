@@ -38,12 +38,12 @@ allOpen {
 kotlin.sourceSets["test"].kotlin.srcDir("build/generated/source/kaptKotlin/catadioptre")
 kapt.useBuildCache = false
 
-val coreVersion: String by project
+val pluginPlatformVersion: String by project
 val cassandraDriverVersion = "4.13.0"
 val cassandraAllDriverVersion = "4.0.2"
 
 dependencies {
-    implementation(platform("io.qalipsis:plugin-platform:${coreVersion}"))
+    implementation(platform("io.qalipsis:plugin-platform:${pluginPlatformVersion}"))
 
     compileOnly("io.aeris-consulting:catadioptre-annotations")
     compileOnly("io.micronaut:micronaut-runtime")
@@ -58,15 +58,15 @@ dependencies {
     api("io.qalipsis:api-common")
     api("io.qalipsis:api-dsl")
 
-    kapt(platform("io.qalipsis:plugin-platform:${coreVersion}"))
+    kapt(platform("io.qalipsis:plugin-platform:${pluginPlatformVersion}"))
     kapt("io.qalipsis:api-processors")
     kapt("io.aeris-consulting:catadioptre-annotations")
 
-    testFixturesImplementation(platform("io.qalipsis:plugin-platform:${coreVersion}"))
+    testFixturesImplementation(platform("io.qalipsis:plugin-platform:${pluginPlatformVersion}"))
     testFixturesImplementation("io.qalipsis:api-common")
     testFixturesImplementation("io.qalipsis:test")
 
-    testImplementation(platform("io.qalipsis:plugin-platform:${coreVersion}"))
+    testImplementation(platform("io.qalipsis:plugin-platform:${pluginPlatformVersion}"))
     testImplementation("org.testcontainers:cassandra")
     testImplementation("io.qalipsis:test")
     testImplementation("io.qalipsis:api-dsl")
@@ -80,7 +80,7 @@ dependencies {
     testRuntimeOnly("io.qalipsis:head")
     testRuntimeOnly("io.qalipsis:factory")
 
-    kaptTest(platform("io.qalipsis:plugin-platform:${coreVersion}"))
+    kaptTest(platform("io.qalipsis:plugin-platform:${pluginPlatformVersion}"))
     kaptTest("io.micronaut:micronaut-inject-java")
     kaptTest("io.qalipsis:api-processors")
 }
