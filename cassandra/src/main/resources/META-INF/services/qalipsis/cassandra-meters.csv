@@ -1,0 +1,15 @@
+cassandra-poll-failure;counter
+cassandra-poll-fetched-records;counter
+cassandra-poll-success;counter
+cassandra-poll-time-to-failure;timer
+cassandra-poll-time-to-response;timer
+cassandra-save-failed-documents;counter
+cassandra-save-saved-documents;counter
+cassandra-save-saving-documents;counter
+cassandra-save-time-to-response;timer
+cassandra-save-time-to-failure;timer
+cassandra-search-failure;counter
+cassandra-search-fetched-records;counter
+cassandra-search-success;counter
+cassandra-search-time-to-failure;timer
+cassandra-search-time-to-response;timer

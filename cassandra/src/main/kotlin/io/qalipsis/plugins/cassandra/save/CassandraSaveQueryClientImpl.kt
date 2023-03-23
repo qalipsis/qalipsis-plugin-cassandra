@@ -33,7 +33,7 @@ import kotlin.coroutines.CoroutineContext
  * Implementation of [CassandraSaveQueryClient].
  * Client to save records in Cassandra.
  *
- * @property metrics the metrics for the query operation.
+ * @property meterRegistry the metrics for the query operation.
  * @property eventsLogger the logger for events to track what happens during save query execution.
  *
  * @author Svetlana Paliashchuk

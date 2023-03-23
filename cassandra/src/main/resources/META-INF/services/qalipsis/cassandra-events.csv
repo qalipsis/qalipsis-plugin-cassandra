@@ -1,0 +1,8 @@
+cassandra.poll.failure;Duration,Throwable
+cassandra.poll.success;Int,Duration
+cassandra.save.failure;Duration,Throwable
+cassandra.save.saved-documents;AtomicInteger,Duration
+cassandra.save.saving-documents;Int
+cassandra.save.failed-documents;Int
+cassandra.search.failure;Duration,Throwable
+cassandra.search.success;Int,Duration
