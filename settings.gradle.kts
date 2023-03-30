@@ -17,6 +17,8 @@
 rootProject.name = "qalipsis-plugins-cassandra"
 
 include(
-    "cassandra"
+    "qalipsis-plugin-cassandra"
 )
+
+project(":qalipsis-plugin-cassandra").projectDir = File(rootDir, "cassandra")
 
