@@ -128,7 +128,7 @@ internal class CassandraSaveQueryClientIntegrationTest : AbstractCassandraIntegr
             savedDocuments.increment(1.0)
         }
         assertThat(eventCaptor.captured.toList()).all {
-            index(0).all {
+            index(0).isNotNull().isInstanceOf<AtomicInteger>().all {
                 prop(AtomicInteger::get).isEqualTo(1)
             }
             index(1).isNotNull().isInstanceOf(Duration::class.java).isGreaterThan(Duration.ZERO)
