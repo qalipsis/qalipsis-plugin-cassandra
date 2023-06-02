@@ -138,9 +138,6 @@ allprojects {
     }
 
     tasks {
-        withType<Jar> {
-            archiveBaseName.set("io-qalipsis-plugin-${project.name}")
-        }
 
         withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
             kotlinOptions {
