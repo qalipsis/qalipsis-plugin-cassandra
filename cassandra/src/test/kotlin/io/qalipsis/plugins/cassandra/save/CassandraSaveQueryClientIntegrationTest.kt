@@ -27,9 +27,6 @@ import assertk.assertions.isNotNull
 import assertk.assertions.prop
 import com.datastax.oss.driver.api.core.cql.AsyncResultSet
 import com.datastax.oss.driver.api.core.cql.Row
-import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.Tags
-import io.micrometer.core.instrument.Timer
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.slot
@@ -38,6 +35,9 @@ import io.mockk.verifyOrder
 import io.qalipsis.api.context.StepStartStopContext
 import io.qalipsis.api.events.EventsLogger
 import io.qalipsis.api.meters.CampaignMeterRegistry
+import io.qalipsis.api.meters.Counter
+import io.qalipsis.api.meters.Meter
+import io.qalipsis.api.meters.Timer
 import io.qalipsis.api.sync.asSuspended
 import io.qalipsis.plugins.cassandra.AbstractCassandraIntegrationTest
 import io.qalipsis.test.mockk.relaxedMockk
@@ -72,9 +72,11 @@ internal class CassandraSaveQueryClientIntegrationTest : AbstractCassandraIntegr
     @Timeout(20)
     fun `should succeed when save a single row and monitor`() = testDispatcherProvider.run {
         // given
-        val metersTags = relaxedMockk<Tags>()
+        val tags: Map<String, String> = emptyMap()
         val startStopContext = relaxedMockk<StepStartStopContext> {
-            every { toMetersTags() } returns metersTags
+            every { toEventTags() } returns tags
+            every { scenarioName } returns "scenario-test"
+            every { stepName } returns "step-test"
         }
         val eventsLogger = relaxedMockk<EventsLogger>()
         val recordsToBeSent = relaxedMockk<Counter>()
@@ -83,16 +85,18 @@ internal class CassandraSaveQueryClientIntegrationTest : AbstractCassandraIntegr
         val savedDocuments = relaxedMockk<Counter>()
         val failedDocuments = relaxedMockk<Counter>()
         val meterRegistry = relaxedMockk<CampaignMeterRegistry> {
-            every { counter("cassandra-save-saving-documents", refEq(metersTags)) } returns recordsToBeSent
-            every { timer("cassandra-save-time-to-response", refEq(metersTags)) } returns timeToSuccess
-            every { timer("cassandra-save-time-to-failure", refEq(metersTags)) } returns timeToFailure
-            every { counter("cassandra-save-saved-documents", refEq(metersTags)) } returns savedDocuments
-            every { counter("cassandra-save-failed-documents", refEq(metersTags)) } returns failedDocuments
+            every { counter("scenario-test", "step-test", "cassandra-save-saving-documents", refEq(tags)) } returns recordsToBeSent
+            every { recordsToBeSent.report(any()) } returns recordsToBeSent
+            every { timer("scenario-test", "step-test", "cassandra-save-time-to-response", refEq(tags)) } returns timeToSuccess
+            every { timer("scenario-test", "step-test", "cassandra-save-time-to-failure", refEq(tags)) } returns timeToFailure
+            every { counter("scenario-test", "step-test", "cassandra-save-saved-documents", refEq(tags)) } returns savedDocuments
+            every { savedDocuments.report(any()) } returns savedDocuments
+            every { counter("scenario-test", "step-test", "cassandra-save-failed-documents", refEq(tags)) } returns failedDocuments
+            every { failedDocuments.report(any()) } returns failedDocuments
         }
         val rows = listOf(CassandraSaveRow(42, "'2020-10-20T12:38:56'", "'Truck #1'", "'Leaving office geofence'"))
         val columns = listOf("dummy_node_id", "event_timestamp", "device_name", "event_name")
         val tableName = "tracker"
-        val tags: Map<String, String> = emptyMap()
         val saveClient = CassandraSaveQueryClientImpl(testDispatcherProvider.io(), eventsLogger, meterRegistry)
         saveClient.start(startStopContext)
 
@@ -123,6 +127,9 @@ internal class CassandraSaveQueryClientIntegrationTest : AbstractCassandraIntegr
             )
         }
         verify {
+            recordsToBeSent.report(any<Meter.ReportingConfiguration<Counter>.() -> Unit>())
+            savedDocuments.report(any<Meter.ReportingConfiguration<Counter>.() -> Unit>())
+            failedDocuments.report(any<Meter.ReportingConfiguration<Counter>.() -> Unit>())
             recordsToBeSent.increment(1.0)
             timeToSuccess.record(refEq(eventCaptor.captured[1] as Duration))
             savedDocuments.increment(1.0)

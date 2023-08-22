@@ -17,11 +17,12 @@
 package io.qalipsis.plugins.cassandra.save
 
 import com.datastax.oss.driver.api.core.CqlSession
-import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.Timer
 import io.qalipsis.api.context.StepStartStopContext
 import io.qalipsis.api.events.EventsLogger
 import io.qalipsis.api.meters.CampaignMeterRegistry
+import io.qalipsis.api.meters.Counter
+import io.qalipsis.api.meters.Timer
+import io.qalipsis.api.report.ReportMessageSeverity
 import io.qalipsis.api.sync.asSuspended
 import kotlinx.coroutines.withContext
 import java.time.Duration
@@ -60,22 +61,43 @@ internal class CassandraSaveQueryClientImpl(
 
     override suspend fun start(context: StepStartStopContext) {
         meterRegistry?.apply {
-            val tags = context.toMetersTags()
-            recordsToBeSent = counter("$meterPrefix-saving-documents", tags)
-            timeToSuccess = timer("$meterPrefix-time-to-response", tags)
-            timeToFailure = timer("$meterPrefix-time-to-failure", tags)
-            savedDocuments = counter("$meterPrefix-saved-documents", tags)
-            failedDocuments = counter("$meterPrefix-failed-documents", tags)
+            val tags = context.toEventTags()
+            val scenarioName = context.scenarioName
+            val stepName = context.stepName
+            recordsToBeSent = counter(scenarioName, stepName, "$meterPrefix-saving-documents", tags).report {
+                display(
+                    format = "attempted save %,.0f",
+                    severity = ReportMessageSeverity.INFO,
+                    row = 0,
+                    column = 0,
+                    Counter::count
+                )
+            }
+            timeToSuccess = timer(scenarioName, stepName, "$meterPrefix-time-to-response", tags)
+            timeToFailure = timer(scenarioName, stepName, "$meterPrefix-time-to-failure", tags)
+            savedDocuments = counter(scenarioName, stepName, "$meterPrefix-saved-documents", tags).report {
+                display(
+                    format = "\u2716 %,.0f successes",
+                    severity = ReportMessageSeverity.INFO,
+                    row = 0,
+                    column = 1,
+                    Counter::count
+                )
+            }
+            failedDocuments = counter(scenarioName, stepName, "$meterPrefix-failed-documents", tags).report {
+                display(
+                    format = "\u2716 %,.0f failures",
+                    severity = ReportMessageSeverity.ERROR,
+                    row = 0,
+                    column = 2,
+                    Counter::count
+                )
+            }
         }
     }
 
     override suspend fun stop(context: StepStartStopContext) {
         meterRegistry?.apply {
-            remove(recordsToBeSent!!)
-            remove(timeToSuccess!!)
-            remove(timeToFailure!!)
-            remove(savedDocuments!!)
-            remove(failedDocuments!!)
             recordsToBeSent = null
             timeToSuccess = null
             timeToFailure = null
