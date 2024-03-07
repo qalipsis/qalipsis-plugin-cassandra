@@ -63,7 +63,7 @@ internal class CassandraQueryClientImpl(
 
     override suspend fun start(context: StepStartStopContext) {
         meterRegistry?.apply {
-            val tags = context.toEventTags()
+            val tags = context.toMetersTags()
             val scenarioName = context.scenarioName
             val stepName = context.stepName
             recordsCount = counter(scenarioName, stepName, "$meterPrefix-fetched-records", tags).report {

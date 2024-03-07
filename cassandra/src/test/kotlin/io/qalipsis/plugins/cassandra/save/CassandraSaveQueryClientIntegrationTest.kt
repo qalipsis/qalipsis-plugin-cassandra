@@ -74,7 +74,7 @@ internal class CassandraSaveQueryClientIntegrationTest : AbstractCassandraIntegr
         // given
         val tags: Map<String, String> = emptyMap()
         val startStopContext = relaxedMockk<StepStartStopContext> {
-            every { toEventTags() } returns tags
+            every { toMetersTags() } returns tags
             every { scenarioName } returns "scenario-test"
             every { stepName } returns "step-test"
         }
