@@ -61,7 +61,7 @@ internal class CassandraSaveQueryClientImpl(
 
     override suspend fun start(context: StepStartStopContext) {
         meterRegistry?.apply {
-            val tags = context.toEventTags()
+            val tags = context.toMetersTags()
             val scenarioName = context.scenarioName
             val stepName = context.stepName
             recordsToBeSent = counter(scenarioName, stepName, "$meterPrefix-saving-documents", tags).report {
