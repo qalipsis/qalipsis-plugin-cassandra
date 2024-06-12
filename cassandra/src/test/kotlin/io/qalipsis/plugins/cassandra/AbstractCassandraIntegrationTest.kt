@@ -84,7 +84,9 @@ internal abstract class AbstractCassandraIntegrationTest {
         val CONTAINER = CassandraContainer<Nothing>(IMAGE_NAME)
             .apply {
                 withCreateContainerCmdModifier { cmd ->
-                    cmd.hostConfig!!.withMemory(512 * 1024.0.pow(2).toLong()).withCpuCount(2)
+                    cmd.hostConfig!!
+                        .withMemory(768 * 1024.0.pow(2).toLong())
+                        .withCpuCount(2)
                 }
                 withEnv("MAX_HEAP_SIZE", "256M")
                 withEnv("HEAP_NEWSIZE", "128M")
