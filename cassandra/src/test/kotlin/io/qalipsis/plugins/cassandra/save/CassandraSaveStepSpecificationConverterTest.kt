@@ -26,7 +26,6 @@ import assertk.assertions.isNull
 import assertk.assertions.isSameAs
 import assertk.assertions.isTrue
 import com.datastax.oss.driver.api.core.CqlSessionBuilder
-import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.spyk
 import io.qalipsis.api.context.StepContext
 import io.qalipsis.api.steps.StepCreationContext
@@ -40,7 +39,6 @@ import io.qalipsis.test.mockk.relaxedMockk
 import io.qalipsis.test.steps.AbstractStepSpecificationConverterTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
-import kotlin.coroutines.CoroutineContext
 
 /**
  *
@@ -54,9 +52,6 @@ internal class CassandraSaveStepSpecificationConverterTest :
     @JvmField
     @RegisterExtension
     val testDispatcherProvider = TestDispatcherProvider()
-
-    @RelaxedMockK
-    private lateinit var ioCoroutineContext: CoroutineContext
 
     private val rowsFactory: (suspend (ctx: StepContext<*, *>, input: Any) -> List<CassandraSaveRow>) = relaxedMockk()
 
@@ -116,7 +111,6 @@ internal class CassandraSaveStepSpecificationConverterTest :
             prop("columns").isEqualTo(columns)
             prop("rowsFactory").isEqualTo(rowsFactory)
             prop("cassandraSaveQueryClient").isNotNull().isInstanceOf(CassandraSaveQueryClientImpl::class).all {
-                prop("ioCoroutineContext").isSameAs(ioCoroutineContext)
                 prop("eventsLogger").isSameAs(eventsLogger)
                 prop("meterRegistry").isNull()
             }
@@ -160,7 +154,6 @@ internal class CassandraSaveStepSpecificationConverterTest :
             prop("columns").isEqualTo(columns)
             prop("rowsFactory").isEqualTo(rowsFactory)
             prop("cassandraSaveQueryClient").isNotNull().isInstanceOf(CassandraSaveQueryClientImpl::class).all {
-                prop("ioCoroutineContext").isSameAs(ioCoroutineContext)
                 prop("eventsLogger").isNull()
                 prop("meterRegistry").isSameAs(meterRegistry)
             }

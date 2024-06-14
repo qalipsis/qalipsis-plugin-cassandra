@@ -84,13 +84,48 @@ internal class CassandraQueryClientIntegrationTest : AbstractCassandraIntegratio
         val successCounter = relaxedMockk<Counter>()
         val failureCounter = relaxedMockk<Counter>()
         val meterRegistry = relaxedMockk<CampaignMeterRegistry> {
-            every { counter("scenario-test", "step-test", "cassandra-test-fetched-records", refEq(tags)) } returns recordsCount
+            every {
+                counter(
+                    "scenario-test",
+                    "step-test",
+                    "cassandra-test-fetched-records",
+                    refEq(tags)
+                )
+            } returns recordsCount
             every { recordsCount.report(any()) } returns recordsCount
-            every { timer("scenario-test", "step-test", "cassandra-test-time-to-response", refEq(tags)) } returns timeToSuccess
-            every { timer("scenario-test", "step-test", "cassandra-test-time-to-failure", refEq(tags)) } returns timeToFailure
-            every { counter("scenario-test", "step-test", "cassandra-test-success", refEq(tags)) } returns successCounter
+            every {
+                timer(
+                    "scenario-test",
+                    "step-test",
+                    "cassandra-test-time-to-response",
+                    refEq(tags)
+                )
+            } returns timeToSuccess
+            every {
+                timer(
+                    "scenario-test",
+                    "step-test",
+                    "cassandra-test-time-to-failure",
+                    refEq(tags)
+                )
+            } returns timeToFailure
+            every {
+                counter(
+                    "scenario-test",
+                    "step-test",
+                    "cassandra-test-success",
+                    refEq(tags)
+                )
+            } returns successCounter
             every { successCounter.report(any()) } returns successCounter
-            every { counter("scenario-test", "step-test", "cassandra-test-failure", refEq(tags)) } returns failureCounter
+            every {
+                counter(
+                    "scenario-test",
+                    "step-test",
+                    "cassandra-test-failure",
+                    refEq(tags)
+                )
+            } returns failureCounter
             every { failureCounter.report(any()) } returns failureCounter
         }
 
@@ -101,7 +136,7 @@ internal class CassandraQueryClientIntegrationTest : AbstractCassandraIntegratio
             """SELECT * FROM TRACKER WHERE 
                DUMMY_NODE_ID = ? AND EVENT_TIMESTAMP = ?""".trimIndent()
 
-        val searchClient = CassandraQueryClientImpl(testDispatcherProvider.io(), eventsLogger, meterRegistry, "test")
+        val searchClient = CassandraQueryClientImpl(eventsLogger, meterRegistry, "test")
         searchClient.start(startStopContext)
 
         // when
@@ -163,7 +198,7 @@ internal class CassandraQueryClientIntegrationTest : AbstractCassandraIntegratio
             """SELECT * FROM TRACKER WHERE 
                DUMMY_NODE_ID = ? AND EVENT_TIMESTAMP = ? AND DEVICE_NAME = ?""".trimIndent()
         val tags: Map<String, String> = emptyMap()
-        val searchClient = CassandraQueryClientImpl(testDispatcherProvider.io(), null, null, "search")
+        val searchClient = CassandraQueryClientImpl(null, null, "search")
 
         // when
         val results = searchClient.execute(session, queryBuilder, paramsBuilder, tags).rows
@@ -196,13 +231,48 @@ internal class CassandraQueryClientIntegrationTest : AbstractCassandraIntegratio
         val successCounter = relaxedMockk<Counter>()
         val failureCounter = relaxedMockk<Counter>()
         val meterRegistry = relaxedMockk<CampaignMeterRegistry> {
-            every { counter("scenario-test", "step-test", "cassandra-test-fetched-records", refEq(tags)) } returns recordsCount
+            every {
+                counter(
+                    "scenario-test",
+                    "step-test",
+                    "cassandra-test-fetched-records",
+                    refEq(tags)
+                )
+            } returns recordsCount
             every { recordsCount.report(any()) } returns recordsCount
-            every { timer("scenario-test", "step-test", "cassandra-test-time-to-response", refEq(tags)) } returns timeToSuccess
-            every { timer("scenario-test", "step-test", "cassandra-test-time-to-failure", refEq(tags)) } returns timeToFailure
-            every { counter("scenario-test", "step-test", "cassandra-test-success", refEq(tags)) } returns successCounter
+            every {
+                timer(
+                    "scenario-test",
+                    "step-test",
+                    "cassandra-test-time-to-response",
+                    refEq(tags)
+                )
+            } returns timeToSuccess
+            every {
+                timer(
+                    "scenario-test",
+                    "step-test",
+                    "cassandra-test-time-to-failure",
+                    refEq(tags)
+                )
+            } returns timeToFailure
+            every {
+                counter(
+                    "scenario-test",
+                    "step-test",
+                    "cassandra-test-success",
+                    refEq(tags)
+                )
+            } returns successCounter
             every { successCounter.report(any()) } returns successCounter
-            every { counter("scenario-test", "step-test", "cassandra-test-failure", refEq(tags)) } returns failureCounter
+            every {
+                counter(
+                    "scenario-test",
+                    "step-test",
+                    "cassandra-test-failure",
+                    refEq(tags)
+                )
+            } returns failureCounter
             every { failureCounter.report(any()) } returns failureCounter
         }
 
@@ -211,7 +281,7 @@ internal class CassandraQueryClientIntegrationTest : AbstractCassandraIntegratio
             """SELECT * FROM TRACKER WHERE 
                DUMMY_NODE_ID = ? AND EVENT_TIMESTAMP = ? AND DEVICE_NAME = ?""".trimIndent()
 
-        val searchClient = CassandraQueryClientImpl(testDispatcherProvider.io(), eventsLogger, meterRegistry, "test")
+        val searchClient = CassandraQueryClientImpl(eventsLogger, meterRegistry, "test")
         searchClient.start(startStopContext)
 
         // when

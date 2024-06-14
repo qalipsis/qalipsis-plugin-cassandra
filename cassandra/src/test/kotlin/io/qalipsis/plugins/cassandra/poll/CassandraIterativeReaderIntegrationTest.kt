@@ -110,7 +110,7 @@ internal class CassandraIterativeReaderIntegrationTest : AbstractCassandraIntegr
             sessionBuilder = sessionBuilder,
             cqlPollStatement = pollStatement,
             pollPeriod = Duration.ofSeconds(1),
-            cassandraQueryClient = CassandraQueryClientImpl(testDispatcherProvider.io(), null, null, "poll")
+            cassandraQueryClient = CassandraQueryClientImpl(null, null, "poll")
         )
 
         //when
@@ -138,7 +138,7 @@ internal class CassandraIterativeReaderIntegrationTest : AbstractCassandraIntegr
             sessionBuilder = sessionBuilder,
             cqlPollStatement = pollStatement,
             pollPeriod = Duration.ofSeconds(1),
-            cassandraQueryClient = CassandraQueryClientImpl(testDispatcherProvider.io(), null, null, "poll")
+            cassandraQueryClient = CassandraQueryClientImpl(null, null, "poll")
         )
 
         val session = sessionBuilder.build()
@@ -186,7 +186,7 @@ internal class CassandraIterativeReaderIntegrationTest : AbstractCassandraIntegr
             sessionBuilder = sessionBuilder,
             cqlPollStatement = pollStatement,
             pollPeriod = Duration.ofSeconds(1),
-            cassandraQueryClient = CassandraQueryClientImpl(testDispatcherProvider.io(), null, null, "poll")
+            cassandraQueryClient = CassandraQueryClientImpl(null, null, "poll")
         )
 
         val session = sessionBuilder.build()

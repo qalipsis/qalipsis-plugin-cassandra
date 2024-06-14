@@ -34,7 +34,6 @@ import io.qalipsis.plugins.cassandra.converters.CassandraSingleRecordConverter
 import io.qalipsis.plugins.cassandra.search.CassandraQueryClientImpl
 import jakarta.inject.Named
 import kotlinx.coroutines.CoroutineScope
-import kotlin.coroutines.CoroutineContext
 
 /**
  * [StepSpecificationConverter] from [CassandraPollStepSpecificationImpl] to [CassandraIterativeReader] for a data source.
@@ -45,8 +44,7 @@ import kotlin.coroutines.CoroutineContext
 internal class CassandraPollStepSpecificationConverter(
     private val meterRegistry: CampaignMeterRegistry,
     private val eventsLogger: EventsLogger,
-    @Named(Executors.IO_EXECUTOR_NAME) private val ioCoroutineScope: CoroutineScope,
-    @Named(Executors.IO_EXECUTOR_NAME) private val ioCoroutineContext: CoroutineContext
+    @Named(Executors.IO_EXECUTOR_NAME) private val ioCoroutineScope: CoroutineScope
 ) : StepSpecificationConverter<CassandraPollStepSpecificationImpl> {
 
     override fun support(stepSpecification: StepSpecification<*, *, *>): Boolean {
@@ -64,7 +62,6 @@ internal class CassandraPollStepSpecificationConverter(
             cqlPollStatement = cqlPollStatement,
             pollPeriod = spec.pollPeriod,
             cassandraQueryClient = CassandraQueryClientImpl(
-                ioCoroutineContext,
                 supplyIf(spec.monitoringConfig.events) { eventsLogger },
                 supplyIf(spec.monitoringConfig.meters) { meterRegistry },
                 "poll"

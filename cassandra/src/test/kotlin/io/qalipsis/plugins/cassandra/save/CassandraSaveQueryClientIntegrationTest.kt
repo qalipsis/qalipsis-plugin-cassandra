@@ -85,19 +85,54 @@ internal class CassandraSaveQueryClientIntegrationTest : AbstractCassandraIntegr
         val savedDocuments = relaxedMockk<Counter>()
         val failedDocuments = relaxedMockk<Counter>()
         val meterRegistry = relaxedMockk<CampaignMeterRegistry> {
-            every { counter("scenario-test", "step-test", "cassandra-save-saving-documents", refEq(tags)) } returns recordsToBeSent
+            every {
+                counter(
+                    "scenario-test",
+                    "step-test",
+                    "cassandra-save-saving-documents",
+                    refEq(tags)
+                )
+            } returns recordsToBeSent
             every { recordsToBeSent.report(any()) } returns recordsToBeSent
-            every { timer("scenario-test", "step-test", "cassandra-save-time-to-response", refEq(tags)) } returns timeToSuccess
-            every { timer("scenario-test", "step-test", "cassandra-save-time-to-failure", refEq(tags)) } returns timeToFailure
-            every { counter("scenario-test", "step-test", "cassandra-save-saved-documents", refEq(tags)) } returns savedDocuments
+            every {
+                timer(
+                    "scenario-test",
+                    "step-test",
+                    "cassandra-save-time-to-response",
+                    refEq(tags)
+                )
+            } returns timeToSuccess
+            every {
+                timer(
+                    "scenario-test",
+                    "step-test",
+                    "cassandra-save-time-to-failure",
+                    refEq(tags)
+                )
+            } returns timeToFailure
+            every {
+                counter(
+                    "scenario-test",
+                    "step-test",
+                    "cassandra-save-saved-documents",
+                    refEq(tags)
+                )
+            } returns savedDocuments
             every { savedDocuments.report(any()) } returns savedDocuments
-            every { counter("scenario-test", "step-test", "cassandra-save-failed-documents", refEq(tags)) } returns failedDocuments
+            every {
+                counter(
+                    "scenario-test",
+                    "step-test",
+                    "cassandra-save-failed-documents",
+                    refEq(tags)
+                )
+            } returns failedDocuments
             every { failedDocuments.report(any()) } returns failedDocuments
         }
         val rows = listOf(CassandraSaveRow(42, "'2020-10-20T12:38:56'", "'Truck #1'", "'Leaving office geofence'"))
         val columns = listOf("dummy_node_id", "event_timestamp", "device_name", "event_name")
         val tableName = "tracker"
-        val saveClient = CassandraSaveQueryClientImpl(testDispatcherProvider.io(), eventsLogger, meterRegistry)
+        val saveClient = CassandraSaveQueryClientImpl(eventsLogger, meterRegistry)
         saveClient.start(startStopContext)
 
         // when
@@ -163,7 +198,7 @@ internal class CassandraSaveQueryClientIntegrationTest : AbstractCassandraIntegr
         val columns = listOf("dummy_node_id", "event_timestamp", "device_name", "event_name")
         val tableName = "tracker"
         val tags: Map<String, String> = emptyMap()
-        val saveClient = CassandraSaveQueryClientImpl(testDispatcherProvider.io(), null, null)
+        val saveClient = CassandraSaveQueryClientImpl(null, null)
 
         // when
         saveClient.execute(session, tableName, columns, rows, tags)
@@ -203,7 +238,7 @@ internal class CassandraSaveQueryClientIntegrationTest : AbstractCassandraIntegr
             val columns = listOf("dummy_node_id", "event_timestamp", "device_name", "event_name")
             val tableName = "tracker"
             val tags: Map<String, String> = emptyMap()
-            val saveClient = CassandraSaveQueryClientImpl(testDispatcherProvider.io(), null, null)
+            val saveClient = CassandraSaveQueryClientImpl(null, null)
 
             // when
             saveClient.execute(session, tableName, columns, rows, tags)
@@ -235,7 +270,7 @@ internal class CassandraSaveQueryClientIntegrationTest : AbstractCassandraIntegr
 
         val tableName = "tracker"
         val tags: Map<String, String> = emptyMap()
-        val saveClient = CassandraSaveQueryClientImpl(testDispatcherProvider.io(), null, null)
+        val saveClient = CassandraSaveQueryClientImpl(null, null)
 
         // when
         assertThrows<IllegalArgumentException> {
