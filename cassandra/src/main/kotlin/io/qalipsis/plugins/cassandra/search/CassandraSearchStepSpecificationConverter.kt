@@ -16,7 +16,6 @@
 
 package io.qalipsis.plugins.cassandra.search
 
-import io.qalipsis.api.Executors
 import io.qalipsis.api.annotations.StepConverter
 import io.qalipsis.api.context.StepContext
 import io.qalipsis.api.events.EventsLogger
@@ -29,8 +28,6 @@ import io.qalipsis.plugins.cassandra.CassandraQueryResult
 import io.qalipsis.plugins.cassandra.configuration.CqlSessionBuilderFactory
 import io.qalipsis.plugins.cassandra.converters.CassandraResultSetBatchRecordConverter
 import io.qalipsis.plugins.cassandra.converters.CassandraResultSetConverter
-import jakarta.inject.Named
-import kotlin.coroutines.CoroutineContext
 
 /**
  * [StepSpecificationConverter] from [CassandraSearchStepSpecificationImpl] to [CassandraSearchStep]
@@ -42,7 +39,6 @@ import kotlin.coroutines.CoroutineContext
 internal class CassandraSearchStepSpecificationConverter(
     private val meterRegistry: CampaignMeterRegistry,
     private val eventsLogger: EventsLogger,
-    @Named(Executors.IO_EXECUTOR_NAME) private val ioCoroutineContext: CoroutineContext
 ) : StepSpecificationConverter<CassandraSearchStepSpecificationImpl<*>> {
 
     override fun support(stepSpecification: StepSpecification<*, *, *>): Boolean {
@@ -63,7 +59,6 @@ internal class CassandraSearchStepSpecificationConverter(
             parametersFactory = spec.parametersFactory as suspend (ctx: StepContext<*, *>, input: Any?) -> List<Any>,
             converter = CassandraResultSetBatchRecordConverter<Any>() as CassandraResultSetConverter<CassandraQueryResult, Any, Any?>,
             cassandraQueryClient = CassandraQueryClientImpl(
-                ioCoroutineContext,
                 supplyIf(spec.monitoringConfig.events) { eventsLogger },
                 supplyIf(spec.monitoringConfig.meters) { meterRegistry },
                 "search"

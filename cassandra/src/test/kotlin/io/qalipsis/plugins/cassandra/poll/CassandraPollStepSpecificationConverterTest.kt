@@ -30,7 +30,6 @@ import com.datastax.oss.driver.api.core.type.reflect.GenericType
 import io.aerisconsulting.catadioptre.getProperty
 import io.mockk.confirmVerified
 import io.mockk.every
-import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.spyk
 import io.qalipsis.api.steps.StepCreationContext
 import io.qalipsis.api.steps.StepCreationContextImpl
@@ -49,14 +48,12 @@ import io.qalipsis.test.mockk.relaxedMockk
 import io.qalipsis.test.mockk.verifyNever
 import io.qalipsis.test.mockk.verifyOnce
 import io.qalipsis.test.steps.AbstractStepSpecificationConverterTest
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.Duration
-import kotlin.coroutines.CoroutineContext
 
 /**
  *
@@ -69,12 +66,6 @@ internal class CassandraPollStepSpecificationConverterTest :
     @JvmField
     @RegisterExtension
     val testDispatcherProvider = TestDispatcherProvider()
-
-    @RelaxedMockK
-    private lateinit var ioCoroutineScope: CoroutineScope
-
-    @RelaxedMockK
-    private lateinit var ioCoroutineContext: CoroutineContext
 
     @Test
     override fun `should support expected spec`() {
@@ -130,12 +121,10 @@ internal class CassandraPollStepSpecificationConverterTest :
         assertThat(creationContext.createdStep!!).isInstanceOf(IterativeDatasourceStep::class).all {
             prop("name").isEqualTo("my-step")
             prop("reader").isNotNull().isInstanceOf(CassandraIterativeReader::class).all {
-                prop("ioCoroutineScope").isSameAs(ioCoroutineScope)
                 prop("sessionBuilder").isNotNull()
                 prop("cqlPollStatement").isSameAs(cqlPollStatement)
                 prop("pollPeriod").isEqualTo(Duration.ofSeconds(10))
                 prop("cassandraQueryClient").isNotNull().isInstanceOf(CassandraQueryClientImpl::class).all {
-                    prop("ioCoroutineContext").isSameAs(ioCoroutineContext)
                     prop("eventsLogger").isSameAs(eventsLogger)
                     prop("meterRegistry").isNull()
                 }
@@ -201,12 +190,10 @@ internal class CassandraPollStepSpecificationConverterTest :
         assertThat(creationContext.createdStep!!).isInstanceOf(IterativeDatasourceStep::class).all {
             prop("name").isEqualTo("my-step")
             prop("reader").isNotNull().isInstanceOf(CassandraIterativeReader::class).all {
-                prop("ioCoroutineScope").isSameAs(ioCoroutineScope)
                 prop("sessionBuilder").isNotNull()
                 prop("cqlPollStatement").isSameAs(cqlPollStatement)
                 prop("pollPeriod").isEqualTo(Duration.ofSeconds(10))
                 prop("cassandraQueryClient").isNotNull().isInstanceOf(CassandraQueryClientImpl::class).all {
-                    prop("ioCoroutineContext").isSameAs(ioCoroutineContext)
                     prop("eventsLogger").isNull()
                     prop("meterRegistry").isSameAs(meterRegistry)
                 }

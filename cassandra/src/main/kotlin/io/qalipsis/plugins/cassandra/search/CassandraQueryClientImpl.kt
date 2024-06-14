@@ -28,9 +28,7 @@ import io.qalipsis.api.report.ReportMessageSeverity
 import io.qalipsis.api.sync.asSuspended
 import io.qalipsis.plugins.cassandra.CassandraQueryMeters
 import io.qalipsis.plugins.cassandra.CassandraQueryResult
-import kotlinx.coroutines.withContext
 import java.time.Duration
-import kotlin.coroutines.CoroutineContext
 
 /**
  * Implementation of [CassandraQueryClient].
@@ -41,7 +39,6 @@ import kotlin.coroutines.CoroutineContext
  * @author Gabriel Moraes
  */
 internal class CassandraQueryClientImpl(
-    private val ioCoroutineContext: CoroutineContext,
     private val eventsLogger: EventsLogger?,
     private val meterRegistry: CampaignMeterRegistry?,
     stepType: String,
@@ -124,10 +121,8 @@ internal class CassandraQueryClientImpl(
 
         return try {
             val results = mutableListOf<Row>()
-            val timeToResponse = withContext(ioCoroutineContext) {
-                fetch(session.executeAsync(boundStatement).asSuspended().get(), results)
-                Duration.ofNanos(System.nanoTime() - requestStart)
-            }
+            fetch(session.executeAsync(boundStatement).asSuspended().get(), results)
+            val timeToResponse = Duration.ofNanos(System.nanoTime() - requestStart)
 
             eventsLogger?.info(
                 "${eventPrefix}.success",

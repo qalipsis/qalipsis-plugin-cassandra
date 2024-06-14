@@ -24,10 +24,8 @@ import io.qalipsis.api.meters.Counter
 import io.qalipsis.api.meters.Timer
 import io.qalipsis.api.report.ReportMessageSeverity
 import io.qalipsis.api.sync.asSuspended
-import kotlinx.coroutines.withContext
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.coroutines.CoroutineContext
 
 
 /**
@@ -40,7 +38,6 @@ import kotlin.coroutines.CoroutineContext
  * @author Svetlana Paliashchuk
  */
 internal class CassandraSaveQueryClientImpl(
-    private val ioCoroutineContext: CoroutineContext,
     private val eventsLogger: EventsLogger?,
     private val meterRegistry: CampaignMeterRegistry?
 ) : CassandraSaveQueryClient {
@@ -127,24 +124,22 @@ internal class CassandraSaveQueryClientImpl(
             } else failedDocumentsCount.incrementAndGet()
         }
 
-        val timeToResponse = withContext(ioCoroutineContext) {
-            val requestStart = System.nanoTime()
-            try {
-                val futures = queryList.map { session.executeAsync(it).asSuspended() }
-                futures.forEach {
-                    if (it.get().wasApplied()) {
-                        savedDocumentsCount.incrementAndGet()
-                    } else {
-                        failedDocumentsCount.incrementAndGet()
-                    }
+        val requestStart = System.nanoTime()
+        val timeToResponse = try {
+            val futures = queryList.map { session.executeAsync(it).asSuspended() }
+            futures.forEach {
+                if (it.get().wasApplied()) {
+                    savedDocumentsCount.incrementAndGet()
+                } else {
+                    failedDocumentsCount.incrementAndGet()
                 }
-                Duration.ofNanos(System.nanoTime() - requestStart)
-            } catch (e: Exception) {
-                val timeToResponse = Duration.ofNanos(System.nanoTime() - requestStart)
-                eventsLogger?.warn("$eventPrefix.failure", arrayOf(timeToResponse, e), tags = contextEventTags)
-                timeToFailure?.record(timeToResponse)
-                throw e
             }
+            Duration.ofNanos(System.nanoTime() - requestStart)
+        } catch (e: Exception) {
+            val timeToResponse = Duration.ofNanos(System.nanoTime() - requestStart)
+            eventsLogger?.warn("$eventPrefix.failure", arrayOf(timeToResponse, e), tags = contextEventTags)
+            timeToFailure?.record(timeToResponse)
+            throw e
         }
         require(savedDocumentsCount.get() > 0) { "None of the rows could be saved" }
 
